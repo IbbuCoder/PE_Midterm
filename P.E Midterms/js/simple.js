@@ -1,0 +1,93 @@
+// Plain-English notes for the "Simple words" switch.
+// These add no new facts. The teacher's wording stays on the page, and tests use her wording.
+
+// Notes shown under each section, keyed by section id.
+PE.simple = {
+  'u1-wellness': 'Being well has 4 parts: your body, your feelings, your mind and your friends. When you move your body, the other 3 get better too.',
+  'u1-components': 'Fitness has 5 parts. Strength: how hard your muscles can push. Muscle endurance: how long your muscles can keep going. Cardio endurance: how long your heart and lungs can keep going. Flexibility: how well your joints move. Body composition: how much of you is fat and how much is not.',
+  'u1-benefits': 'Being fit helps you feel better, have more energy, sleep better and live longer.',
+  'u1-rpe': 'RPE means how hard exercise feels to you. Moderate: you can still talk a little. Vigorous: you can only say one sentence.',
+  'u1-lifetime': 'These are activities you can do at any age, even when you are old.',
+  'u1-smart': 'A SMART goal is a good goal. It says exactly what you will do, you can measure it, it is hard but possible, it is realistic, and it has a due date.',
+  'u2-basics': 'Cardiovascular means your heart and blood vessels. Heart and blood vessel disease kills the most people in the world. Your heart pumps blood with oxygen to your whole body. Being cardio fit can change how long you live.',
+  'u2-risk': 'A risk factor is something that makes you more likely to die young. You can change some of them, like smoking. You can’t change others, like your age.',
+  'u2-benefits': 'Read each row like this: the left side causes the right side. A stronger heart causes lower blood pressure.',
+  'u2-aerobic': 'Aerobic means with oxygen. It is steady exercise that lasts a long time, like biking. Anaerobic means without oxygen. It is a short, super hard burst, like sprinting. Your muscles use energy they already stored.',
+  'u2-hr': 'Do 220 minus your age. That number is your max heart rate. On the class chart, beginners stay under 145 beats per minute. Moderate to high is 145 to 186.',
+  'u2-hrnotes': 'You want a low resting heart rate, not a high one. If you are fit, your heart rate stays lower in your zone even when you work hard. To make a cardio machine harder, go faster or raise the incline/resistance.',
+  'u2-fitt': 'FITT is 4 questions for planning exercise. How often? How hard? How long? What kind?',
+  'u3-defs': 'Strength means how much force your muscles can make. Endurance means how long your muscles can keep going.',
+  'u3-protocol': 'For strength: heavy weight, few reps, long rest. For endurance: light weight, many reps, short rest. Both use 3 sets.',
+  'u3-1rm': '1RM means the most weight you can lift one time. Times it by 0.6 to get your endurance weight. Times it by 0.8 to get your strength weight.',
+  'u3-terms': 'A rep is doing the move 1 time. A set is a group of reps. Super sets are working opposite muscles back to back. 1RM is the most you can lift 1 time.',
+  'u3-law': 'Use it or lose it. If you use a muscle, it grows. That is hypertrophy. If you stop using it, it shrinks. That is atrophy.',
+  'u3-rest': 'After strength training, give those muscles about 48 hours of rest before you train them again.',
+  'u3-technique': 'Do the exercise the right way. You get better results and you don’t get hurt.',
+  'u3-warmup': 'Warm up first. It gets your muscles, nerves and mind ready, and you are less likely to get hurt.',
+  'u3-opposing': 'Muscles come in opposite pairs. Train both, so one doesn’t get stronger than the other.',
+  'u3-principles': 'Overload: do more than your body is used to, and it gets stronger. Don’t add too much at once. Progression: start light and add a little at a time. Specificity: your body gets better at the exact thing you train.',
+  'u3-benefits': 'Strong muscles give you more energy, more confidence, better sleep and stronger bones. You also get hurt less.',
+  'u4-key': 'Each number is 1 muscle. The last column shows which machine works it. A dash means no machine on the class list works that muscle.',
+  'u5-what': 'Body composition means how much of you is fat and how much is not fat. Muscle, bone and organs are the not-fat part. In the example, 30 lbs is fat and 120 lbs is not.',
+  'u5-functions': 'You need some body fat. It protects your organs, keeps you warm, helps you use some vitamins and stores energy.',
+  'u5-types': 'There are 2 kinds of fat. Subcutaneous fat is right under your skin. You can feel it. Visceral fat is deep inside, around your organs. Too much visceral fat is bad for your health, but it usually comes off first.',
+  'u5-versus': 'Muscle and fat are 2 different things. Fat can’t turn into muscle. Muscle is heavier and moves your body. Fat is lighter and protects you, keeps you warm and stores energy.',
+  'u5-bmi': 'BMI is a number based on your weight and height. The problem is that it ignores your age, sex, ethnicity and how much muscle you have.',
+  'u5-methods': 'These are 5 ways to measure body fat. Hydrostatic weighing is the gold standard. Skinfold calipers cost the least.',
+  'u5-percent': 'These are good body fat numbers for adults ages 20–40. The numbers for females are higher than for males.',
+  'u5-timeline': 'When you are little, you get fat cells fast. By your early twenties, the number is set. After that, your fat cells get bigger or smaller, but the number stays the same.',
+  'u5-cells': 'When you lose fat, your fat cells get smaller. They don’t go away. If they are already big and you keep eating more energy than you use, you can get more of them.'
+};
+
+// Everyday names for the muscles.
+PE.plainMuscles = {
+  trapezius: 'Upper back and neck',
+  triceps: 'Back of the upper arm',
+  lats: 'Sides of the back',
+  glutes: 'Buttocks',
+  hamstrings: 'Back of the thigh',
+  gastrocnemius: 'Calf',
+  deltoids: 'Shoulders',
+  pectorals: 'Chest',
+  abdominals: 'Stomach',
+  biceps: 'Front of the upper arm',
+  quadriceps: 'Front of the thigh'
+};
+
+// Notes for flashcards, keyed by the card's front text.
+PE.simpleCards = {
+  'Muscular Strength': 'How hard your muscles can push.',
+  'Muscular Endurance': 'How long your muscles can keep going.',
+  'Cardiovascular Endurance': 'How long your heart and lungs can keep going.',
+  'Flexibility': 'How well your joints move.',
+  'Body Composition': 'How much of you is fat and how much is not.',
+  'SMART goals': 'A clear goal you can measure, with a due date.',
+  'Risk factor': 'Something that makes you more likely to die young.',
+  'Aerobic exercise': 'With oxygen. Steady exercise that lasts a long time.',
+  'Anaerobic exercise': 'Without oxygen. A short, super hard burst.',
+  'FITT: Frequency': 'How many days a week?',
+  'FITT: Intensity': 'How hard is your heart working?',
+  'FITT: Time': 'How many minutes?',
+  'FITT: Type': 'What kind of exercise?',
+  'Muscular strength': 'How much force your muscles can make.',
+  'Muscular endurance': 'How long your muscles can keep going.',
+  'Repetition (rep)': 'Doing the move 1 time.',
+  'Set': 'A group of reps.',
+  'Super sets': 'Opposite muscles, back to back.',
+  'One Rep Max (1RM)': 'The most you can lift 1 time.',
+  'Law of Use': 'Use it or lose it.',
+  'Hypertrophy': 'Muscle grows.',
+  'Atrophy': 'Muscle shrinks.',
+  'Overload principle': 'Do more than your body is used to, and it gets stronger.',
+  'Principle of progression': 'Start light. Add a little at a time.',
+  'Principle of specificity': 'You get better at the exact thing you train.',
+  'Body composition': 'How much of you is fat and how much is not.',
+  'Subcutaneous fat': 'Fat right under your skin.',
+  'Visceral fat': 'Fat deep inside, around your organs.',
+  'BMI (Body Mass Index)': 'A number based on your weight and height.',
+  'Hydrostatic weighing (underwater weighing)': 'Weighing you in water. The gold standard.',
+  'DXA/DEXA (Dual-Energy X-ray Absorptiometry)': 'An x-ray scan of your bone, fat and muscle.',
+  'Bod Pod': 'Measures the air your body pushes away.',
+  'Bioelectrical impedance': 'Sends electrical signals through your body.',
+  'Skinfold calipers': 'Measures the fat under your skin. Costs the least.'
+};

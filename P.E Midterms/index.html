@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PE Midterm: Personal Fitness</title>
+<meta name="description" content="Study notes, muscle map, flashcards and practice test for the Personal Fitness midterm.">
+<meta name="theme-color" id="theme-color" content="#15171a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="PE Midterm">
+<meta property="og:title" content="PE Midterm: Personal Fitness">
+<meta property="og:description" content="Study notes, muscle map, flashcards and practice test for the Personal Fitness midterm.">
+<meta property="og:type" content="website">
+<link rel="icon" id="icon-svg" href="./img/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="./img/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="./img/apple-touch-icon.png">
+<script>
+try {
+  var s = (JSON.parse(localStorage.getItem('pe-midterm-v1')) || {}).settings || {}, r = document.documentElement;
+  var t = s.theme === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : s.theme;
+  if (t) r.dataset.theme = t;
+  if (s.accent) r.dataset.accent = s.accent;
+  if (s.accent === 'custom' && s.color) r.style.setProperty('--accent', s.color);
+  if (s.size) r.dataset.size = s.size;
+  if (s.font) r.dataset.font = s.font;
+  if (s.density) r.dataset.density = s.density;
+  if (s.motion) r.dataset.motion = s.motion;
+  if (s.board) r.dataset.board = s.board;
+  if (s.simple === 'on') r.setAttribute('data-simple', '');
+} catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<!-- Icons for the 5 body composition methods -->
+<svg width="0" height="0" class="sprite" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 32 32">
+    <rect width="32" height="32" rx="6" fill="var(--accent)"/>
+    <path d="M2 11h3v10H2zM5 6h6v20H5zM11 13h10v6H11zM21 6h6v20h-6zM27 11h3v10h-3z" fill="var(--on-accent)"/>
+  </symbol>
+  <symbol id="t-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="t-units" viewBox="0 0 24 24"><path d="M4 5h3M10 5h10M4 12h3M10 12h10M4 19h3M10 19h10" fill="none" stroke="currentColor" stroke-width="2.4"/></symbol>
+  <symbol id="t-cards" viewBox="0 0 24 24"><path d="M3 7h14v13H3zM7 7V4h14v13h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="t-test" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM9 12l2.500 2.500L15.500 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="t-settings" viewBox="0 0 24 24"><path d="M3 7h10M17 7h4M3 17h4M11 17h10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 4h4v6h-4zM7 14h4v6H7z" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.500" cy="10.500" r="6.500" fill="none" stroke="currentColor" stroke-width="2.400"/><path d="M15.500 15.500L21 21" fill="none" stroke="currentColor" stroke-width="2.400"/></symbol>
+  <symbol id="i-hydro" viewBox="0 0 48 48">
+    <path d="M6 8v34h36V8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+    <path d="M6 18q4.500-3 9 0t9 0 9 0 9 0" fill="none" stroke="currentColor" stroke-width="2"/>
+    <circle cx="24" cy="24" r="3.500" fill="currentColor"/>
+    <path d="M24 28v8M18 31h12M24 36l-4 4M24 36l4 4" fill="none" stroke="currentColor" stroke-width="2.500" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="i-dxa" viewBox="0 0 48 48">
+    <path d="M4 38h40M8 38v6M40 38v6" fill="none" stroke="currentColor" stroke-width="2.500"/>
+    <path d="M10 33h24" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="39" cy="32" r="3.500" fill="currentColor"/>
+    <path d="M14 6h20v5H14z" fill="currentColor"/>
+    <path d="M21 11l-4 17M27 11l4 17" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2.500"/>
+  </symbol>
+  <symbol id="i-bodpod" viewBox="0 0 48 48">
+    <path d="M24 4c10 0 16 10 16 21 0 9-6 15-16 15S8 34 8 25C8 14 14 4 24 4z" fill="none" stroke="currentColor" stroke-width="2.500"/>
+    <path d="M24 12c5 0 8 6 8 13 0 5-3 7-8 7s-8-2-8-7c0-7 3-13 8-13z" fill="none" stroke="currentColor" stroke-width="2"/>
+    <path d="M14 44h20" stroke="currentColor" stroke-width="3"/>
+  </symbol>
+  <symbol id="i-bia" viewBox="0 0 48 48">
+    <circle cx="24" cy="8" r="4.500" fill="currentColor"/>
+    <path d="M24 14v16M24 30l-7 14M24 30l7 14M10 19l14-2 14 2" fill="none" stroke="currentColor" stroke-width="2.500" stroke-linecap="round"/>
+    <path d="M8 26l5 3-4 3 6 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M40 26l-5 3 4 3-6 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-skinfold" viewBox="0 0 48 48">
+    <path d="M4 40c8 0 12-2 15-10 2-5 8-5 10 0 3 8 7 10 15 10" fill="none" stroke="currentColor" stroke-width="2.500"/>
+    <path d="M14 26V6h6M34 26V6h-6" fill="none" stroke="currentColor" stroke-width="2.500"/>
+    <path d="M14 26l4 3M34 26l-4 3M10 6h28" fill="none" stroke="currentColor" stroke-width="2.500"/>
+  </symbol>
+</svg>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#home"><svg class="brand-logo" aria-hidden="true"><use href="#i-logo"></use></svg>PE Midterm</a>
+    <nav id="nav" class="nav" aria-label="Main">
+      <a href="#home">Home</a>
+      <a href="#u1">01 Intro</a>
+      <a href="#u2">02 Cardio</a>
+      <a href="#u3">03 Muscular</a>
+      <a href="#u4">04 Muscles</a>
+      <a href="#u5">05 Body comp</a>
+      <a href="#flashcards">Flashcards</a>
+      <a href="#test">Practice test</a>
+      <a href="#settings">Settings</a>
+    </nav>
+    <button type="button" class="icon-btn" id="search-btn" aria-label="Ask a question or search the notes"><svg aria-hidden="true"><use href="#i-search"></use></svg></button>
+    <button type="button" class="dumb-btn" id="dumb-btn" aria-pressed="false">Simple words</button>
+    <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
+  </div>
+</header>
+
+<noscript><p class="noscript">This study site needs JavaScript. Turn it on in your browser, then reload.</p></noscript>
+
+<main id="main">
+
+<!-- HOME -->
+<section class="view" id="view-home" data-title="Home">
+  <div class="wrap">
+    <p class="greeting" id="greeting" hidden></p>
+    <h1 class="home-title" tabindex="-1">PE Midterm <span>Personal Fitness</span></h1>
+    <div class="board" id="board"></div>
+    <button type="button" class="ask-bar" id="home-ask"><svg aria-hidden="true"><use href="#i-search"></use></svg><span>Ask a question or search the notes</span></button>
+    <div class="home-links">
+      <button type="button" class="big-link solid study-link" id="home-study-btn" data-quick="study"><strong id="home-study"></strong><span id="home-study-note"></span></button>
+      <a class="big-link" href="#flashcards"><strong>Flashcards</strong><span id="home-flash"></span></a>
+      <a class="big-link" href="#test"><strong>Practice test</strong><span id="home-test"></span></a>
+      <button type="button" class="big-link" data-quick="daily"><strong>Daily 10</strong><span id="home-daily"></span></button>
+      <button type="button" class="big-link" data-quick="game"><strong>Game Day</strong><span id="home-game"></span></button>
+    </div>
+    <button type="button" class="link-btn clear-all" id="clear-all">Clear all my progress</button>
+  </div>
+</section>
+
+<!-- 01 -->
+<section class="view unit" id="view-u1" data-title="01 Intro to Personal Fitness">
+  <div class="wrap">
+    <header class="unit-head"><span class="unit-num">01</span><h1 tabindex="-1">Intro to Personal Fitness</h1></header>
+    <div class="jump" data-jump></div>
+
+    <div class="block" id="u1-wellness">
+      <h2>Wellness</h2>
+      <div>
+        <p class="lead">4 domains of wellness</p>
+        <ul class="quad"><li>Physical</li><li>Emotional</li><li>Intellectual</li><li>Social</li></ul>
+        <p>Physical activity enhances the intellectual, emotional AND social aspects of health.</p>
+      </div>
+    </div>
+
+    <div class="block" id="u1-components">
+      <h2>Fitness components</h2>
+      <div>
+        <p class="lead">5 health-related fitness components, with the test used for each</p>
+        <table class="tbl stack">
+          <thead><tr><th scope="col">Component</th><th scope="col">Definition</th><th scope="col">Test</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Muscular Strength</th><td data-label="Definition">Maximum force a muscle group can exert against resistance</td><td data-label="Test">Push-up test</td></tr>
+            <tr><th scope="row">Muscular Endurance</th><td data-label="Definition">The ability of a muscle to repeatedly exert force over a prolonged period of time</td><td data-label="Test">Curl-up test</td></tr>
+            <tr><th scope="row">Cardiovascular Endurance</th><td data-label="Definition">The ability of your heart and lungs to supply oxygen to your body during sustained physical activity</td><td data-label="Test">PACER test</td></tr>
+            <tr><th scope="row">Flexibility</th><td data-label="Definition">The ability to move a joint through normal range of motion (ROM)</td><td data-label="Test">Sit &amp; reach test</td></tr>
+            <tr><th scope="row">Body Composition</th><td data-label="Definition">The relative comparison of body fat to lean body mass (muscle, bone, organs)</td><td data-label="Test">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="block" id="u1-benefits">
+      <h2>Benefits</h2>
+      <div>
+        <p class="lead">Benefits of physical fitness</p>
+        <ul class="cols">
+          <li>Improved health</li><li>Stronger heart</li><li>Improves mood</li><li>Increased energy levels</li>
+          <li>Lowers risk of noncommunicable diseases</li><li>Sleep better</li><li>Avoid injuries</li><li>Better self-control</li>
+          <li>Happier with how you see yourself</li><li>Increased life expectancy</li><li>Better physical performance</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="block" id="u1-rpe">
+      <h2>RPE</h2>
+      <div>
+        <p class="lead">Rate of Perceived Exertion</p>
+        <div class="rpe">
+          <div><h3>Moderate activity</h3><p>Breathing heavily, can hold a short conversation. Still somewhat comfortable, but becoming noticeably more challenging.</p></div>
+          <div class="hard"><h3>Vigorous activity</h3><p>Borderline uncomfortable. Short of breath, can speak a sentence.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="block" id="u1-lifetime">
+      <h2>Lifetime activities</h2>
+      <div>
+        <p>Activities you can do during any phase of your lifetime:</p>
+        <p class="runon">Group fitness / Swimming / Walk/jog / Tennis / Biking / Golf</p>
+      </div>
+    </div>
+
+    <div class="block" id="u1-smart">
+      <h2>SMART goals</h2>
+      <div>
+        <ol class="smart">
+          <li><b>S</b>Specific (&amp; written)</li>
+          <li><b>M</b>Measurable</li>
+          <li><b>A</b>Attainable (yet challenging)</li>
+          <li><b>R</b>Realistic</li>
+          <li><b>T</b>Time frame</li>
+        </ol>
+        <table class="tbl plain">
+          <tbody>
+            <tr><th scope="row">Strength example</th><td>“I will increase my maximum bench press to 150 pounds by December 31.”</td></tr>
+            <tr><th scope="row">Cardio example</th><td>“I will be able to run nonstop for 30 minutes by June 1.”</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <nav class="pager" data-pager="u1" aria-label="Unit"></nav>
+  </div>
+</section>
+
+<!-- 02 -->
+<section class="view unit" id="view-u2" data-title="02 Cardiovascular Fitness">
+  <div class="wrap">
+    <header class="unit-head"><span class="unit-num">02</span><h1 tabindex="-1">Cardiovascular Fitness</h1></header>
+    <div class="jump" data-jump></div>
+
+    <div class="block" id="u2-basics">
+      <h2>Basics</h2>
+      <div>
+        <table class="tbl plain">
+          <tbody>
+            <tr><th scope="row">The #1 killer worldwide</th><td>Cardiovascular disease</td></tr>
+            <tr><th scope="row">Cardiovascular endurance</th><td>The ability to persist in physical activities that rely on the heart, blood vessels and lungs to supply oxygen to the working muscles</td></tr>
+            <tr><th scope="row">Function of the heart</th><td>To pump oxygenated blood to various parts of the body</td></tr>
+            <tr><th scope="row">Most drastically affects</th><td>Cardiovascular fitness can most drastically affect life expectancy</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="block" id="u2-risk">
+      <h2>Risk factors</h2>
+      <div>
+        <p><strong>Risk factor:</strong> a major factor in your life that would increase your risk for a premature death.</p>
+        <table class="tbl split">
+          <thead><tr><th scope="col">Controllable</th><th scope="col">Non-controllable</th></tr></thead>
+          <tbody><tr>
+            <td><ul class="bare"><li>Inactivity</li><li>Smoking</li><li>Stress</li><li>High blood pressure</li><li>Cholesterol</li><li>Obesity</li></ul></td>
+            <td><ul class="bare"><li>Biological sex</li><li>Heredity</li><li>Age</li></ul></td>
+          </tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="block" id="u2-benefits">
+      <h2>Benefits</h2>
+      <div>
+        <p class="lead">Benefits of cardiovascular fitness</p>
+        <table class="tbl eq">
+          <tbody>
+            <tr><td>Stronger heart</td><td class="eq-s">=</td><td>Lower blood pressure</td></tr>
+            <tr><td>Decreased body fat</td><td class="eq-s">=</td><td>Less obesity</td></tr>
+            <tr><td>Improved circulation</td><td class="eq-s">=</td><td>Lower blood pressure</td></tr>
+            <tr><td>Faster recovery time</td><td class="eq-s">=</td><td>Improved performance</td></tr>
+            <tr><td>Pumps more blood per beat</td><td class="eq-s">=</td><td>Less stress on system</td></tr>
+            <tr><td>Less risk of CV disease</td><td class="eq-s">=</td><td>Decreased cholesterol</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="block" id="u2-aerobic">
+      <h2>Aerobic vs. anaerobic</h2>
+      <div>
+        <table class="tbl stack">
+          <thead><tr><th scope="col"></th><th scope="col">Aerobic</th><th scope="col">Anaerobic</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Meaning</th><td data-label="Aerobic">“With oxygen”</td><td data-label="Anaerobic">“Without oxygen”</td></tr>
+            <tr><th scope="row">Energy</th><td data-label="Aerobic">Oxygen is the energy supply that helps muscles burn fuel and move, so it doesn’t need another energy source.</td><td data-label="Anaerobic">Demand is greater than the supply, so it uses energy stored in the muscles (glucose).</td></tr>
+            <tr><th scope="row">Exercise</th><td data-label="Aerobic">Moderate exercise over an extended period of time</td><td data-label="Anaerobic">Short bursts of intense exercise</td></tr>
+            <tr><th scope="row">Examples</th><td data-label="Aerobic">Biking, swimming, rollerblading, cross-country running</td><td data-label="Anaerobic">Sprinting, agility ladders, tennis, wrestling</td></tr>
+          </tbody>
+        </table>
+        <p class="spaced"><strong>4 characteristics of cardiovascular activities:</strong> large muscle groups, continuous, rhythmic, aerobic.</p>
+      </div>
+    </div>
+
+    <div class="tool" id="u2-sorter">
+      <h2>Sort it: aerobic or anaerobic</h2>
+      <p class="hint">Drag each activity into a box, or tap it and then tap the box.</p>
+      <div id="sorter"></div>
+    </div>
+
+    <div class="tool" id="u2-hr">
+      <h2>Heart rate calculator</h2>
+      <div class="calc-grid">
+        <div>
+          <label class="field" for="age">Your age</label>
+          <input class="num-input" id="age" type="number" inputmode="numeric" min="1" max="100" value="14">
+          <p class="math" id="hr-math" aria-live="polite"></p>
+          <p class="math-label">Max HR = 220 − age</p>
+          <table class="tbl mini">
+            <caption>Class FITT intensity numbers</caption>
+            <tbody>
+              <tr><th scope="row">Beginner</th><td>Under 145 BPM</td></tr>
+              <tr><th scope="row">Moderate to high</th><td>145–186 BPM</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="gauge"></div>
+      </div>
+    </div>
+
+    <div class="block" id="u2-hrnotes">
+      <h2>Heart rate notes</h2>
+      <div>
+        <blockquote>“I am fit if my HR is in the low-mid end of my target zone with moderate to high intensity exercise.”</blockquote>
+        <p><strong>True/False, “We want to target an INCREASED resting heart rate”:</strong> False (we want a lower resting heart rate).</p>
+        <p><strong>Two ways to increase intensity on cardio machines:</strong> increase the speed and increase the incline/resistance.</p>
+        <p><strong>CDC recommendation:</strong> children and adolescents should get 60 minutes of physical activity daily, with a minimum of 20 minutes of cardiovascular activity.</p>
+      </div>
+    </div>
+
+    <div class="block" id="u2-fitt">
+      <h2>FITT principle</h2>
+      <div>
+        <p class="lead">FITT principle (cardio)</p>
+        <table class="tbl fitt">
+          <thead><tr><th scope="col"></th><th scope="col">Beginner</th><th scope="col">Moderate to high</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><b>F</b>Frequency<small>How often</small></th><td>3–5 days per week</td><td>5–7 days per week</td></tr>
+            <tr><th scope="row"><b>I</b>Intensity<small>How hard</small></th><td>Less than 145 BPM</td><td>145–186 BPM</td></tr>
+            <tr><th scope="row"><b>T</b>Time<small>How long</small></th><td>20–30 minutes</td><td>30–60 minutes</td></tr>
+            <tr><th scope="row"><b>T</b>Type<small>Which exercises</small></th><td colspan="2">A continuous activity that is aerobic (requires oxygen), e.g. running, elliptical, swimming</td></tr>
+          </tbody>
+        </table>
+        <p class="spaced"><strong>Review sheet fill-in:</strong> exercise <mark>3</mark> days minimum per week, at a moderate to vigorous level of intensity, for at least <mark>20</mark> minutes.</p>
+        <p><strong>SMART + FITT example:</strong> “I will run 3 miles with a 7:30 mile pace by April 30th. I will complete 3 short runs at 20 minutes and 2 long runs a week at 30 minutes.”</p>
+      </div>
+    </div>
+
+    <nav class="pager" data-pager="u2" aria-label="Unit"></nav>
+  </div>
+</section>
+
+<!-- 03 -->
+<section class="view unit" id="view-u3" data-title="03 Muscular Fitness">
+  <div class="wrap">
+    <header class="unit-head"><span class="unit-num">03</span><h1 tabindex="-1">Muscular Fitness</h1></header>
+    <div class="jump" data-jump></div>
+
+    <div class="block" id="u3-defs">
+      <h2>Strength vs. endurance</h2>
+      <div>
+        <table class="tbl plain">
+          <tbody>
+            <tr><th scope="row">Muscular strength</th><td>The maximum force that can be generated by a specific muscle or muscle group</td></tr>
+            <tr><th scope="row">Muscular endurance</th><td>The ability of your muscles to perform physical tasks and sustain repeated contractions over a long period of time</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tool" id="u3-protocol">
+      <h2>Training protocols</h2>
+      <table class="protocol">
+        <thead>
+          <tr>
+            <th scope="col"><span class="vh">Measure</span></th>
+            <th scope="col">
+              <svg viewBox="0 0 160 60" aria-hidden="true"><path d="M8 30h144" stroke="currentColor" stroke-width="4"/><path d="M24 4h9v52h-9zM36 10h9v40h-9zM48 16h7v28h-7zM127 4h9v52h-9zM115 10h9v40h-9zM105 16h7v28h-7z" fill="currentColor"/></svg>
+              Muscular Strength
+            </th>
+            <th scope="col">
+              <svg viewBox="0 0 160 60" aria-hidden="true"><path d="M8 30h144" stroke="currentColor" stroke-width="4"/><path d="M36 18h7v24h-7zM117 18h7v24h-7z" fill="currentColor"/></svg>
+              Muscular Endurance
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Sets</th><td class="stat">3</td><td class="stat">3</td></tr>
+          <tr><th scope="row">Reps</th><td><span class="stat">4–8</span><span class="dots" data-dots="4,8"></span></td><td><span class="stat">12–16</span><span class="dots" data-dots="12,16"></span></td></tr>
+          <tr><th scope="row">Load</th><td class="stat">Moderate/<wbr>heavy</td><td class="stat">Lighter</td></tr>
+          <tr><th scope="row">% of 1 Rep Max</th><td><span class="stat">80%</span><span class="pct"><i style="width:80%"></i></span></td><td><span class="stat">60%</span><span class="pct"><i style="width:60%"></i></span></td></tr>
+          <tr><th scope="row">Rest period</th><td class="stat">2–3 min</td><td class="stat">30–60 sec</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tool" id="u3-movein">
+      <h2>Move-in day example</h2>
+      <div class="movein">
+        <figure>
+          <svg viewBox="0 0 300 180" role="img" aria-label="A heavy refrigerator being lifted off a truck">
+            <path d="M10 130h190v18H10z" fill="var(--ink)"/>
+            <path d="M200 92h52l32 30v26h-84z" fill="none" stroke="var(--ink)" stroke-width="4"/>
+            <circle cx="52" cy="154" r="15" fill="var(--paper)" stroke="var(--ink)" stroke-width="4"/>
+            <circle cx="238" cy="154" r="15" fill="var(--paper)" stroke="var(--ink)" stroke-width="4"/>
+            <rect x="72" y="14" width="74" height="104" fill="var(--accent)"/>
+            <path d="M72 50h74" stroke="var(--paper)" stroke-width="3"/>
+            <path d="M84 26v14M84 60v24" stroke="var(--paper)" stroke-width="4"/>
+            <path d="M168 104V30m-12 14l12-14 12 14" fill="none" stroke="var(--ink)" stroke-width="3"/>
+          </svg>
+          <figcaption><strong>Strength</strong> is lifting the heavy refrigerator off the truck.</figcaption>
+        </figure>
+        <figure>
+          <svg viewBox="0 0 300 180" role="img" aria-label="20 light cardboard boxes next to three flights of stairs" id="boxes-svg"></svg>
+          <figcaption><strong>Endurance</strong> is carrying 20 light cardboard boxes up three flights of stairs.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="tool" id="u3-1rm">
+      <h2>1 Rep Max calculator</h2>
+      <div class="calc-grid">
+        <div>
+          <label class="field" for="orm">Your 1RM (lbs)</label>
+          <input class="num-input" id="orm" type="number" inputmode="decimal" min="1" value="60">
+          <p class="note">Class example: 6 reps at 50 lbs = estimated 1RM of 60 lbs.</p>
+        </div>
+        <div class="orm-out" id="orm-out" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="block" id="u3-terms">
+      <h2>Terms</h2>
+      <div>
+        <table class="tbl plain">
+          <tbody>
+            <tr><th scope="row">Repetition (rep)</th><td>How many times you repeat a muscle movement</td></tr>
+            <tr><th scope="row">Set</th><td>A group of consecutive repetitions (3 × 10 = 3 sets of 10 reps)</td></tr>
+            <tr><th scope="row">Super sets</th><td>Exercising opposite muscle groups back to back (e.g. pecs/lats)</td></tr>
+            <tr><th scope="row">One Rep Max (1RM)</th><td>The maximum amount of weight one can lift in a single repetition for a given exercise. It’s used to set your load as a percentage of your 1RM: 60% for endurance, 80% for strength.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="block" id="u3-law">
+      <h2>Law of Use</h2>
+      <div>
+        <blockquote>“That which is used develops… and that which is not used wastes away!”</blockquote>
+        <p>(If you don’t use it, you lose it.)</p>
+        <div class="hyper">
+          <figure>
+            <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="var(--accent)"/></svg>
+            <figcaption><strong>Hypertrophy:</strong> muscles become larger and stronger (example: lifting regularly makes your biceps grow).</figcaption>
+          </figure>
+          <figure>
+            <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--rule)" stroke-width="2" stroke-dasharray="5 5"/><circle cx="60" cy="60" r="26" fill="var(--ink)"/></svg>
+            <figcaption><strong>Atrophy:</strong> muscles become smaller and weaker (example: a leg shrinking after weeks in a cast).</figcaption>
+          </figure>
+        </div>
+      </div>
+    </div>
+
+    <div class="block" id="u3-rest">
+      <h2>Rest and recovery</h2>
+      <div><p>A muscle group needs about <strong class="callout">48 hours</strong> of rest between strength workouts.</p></div>
+    </div>
+
+    <div class="block" id="u3-technique">
+      <h2>Proper technique</h2>
+      <div>
+        <ul class="cols">
+          <li>Warm-up</li><li>Full range of motion (ROM)</li><li>Proper amount of weight</li>
+          <li>Controlled smooth movements</li><li>Use a spotter (free weights)</li><li>Adjust the machine</li>
+        </ul>
+        <p class="spaced"><strong>Why proper technique is important (2 reasons):</strong> to get the desired results, and to avoid injury.</p>
+      </div>
+    </div>
+
+    <div class="block" id="u3-warmup">
+      <h2>Warm-up</h2>
+      <div>
+        <p class="lead">Importance of a proper warm-up</p>
+        <ul class="ruled">
+          <li>Faster muscle contraction: muscles contract faster and more forcefully</li>
+          <li>Ligaments and tendons are more pliable and less prone to injury</li>
+          <li>Less cardiovascular stress</li>
+          <li>Accelerated nerve impulses</li>
+          <li>Psychological readiness</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="block" id="u3-opposing">
+      <h2>Opposing muscles</h2>
+      <div><p>Work opposite muscles to avoid a muscle imbalance (quadriceps &amp; hamstrings, pectorals &amp; lats).</p></div>
+    </div>
+
+    <div class="block" id="u3-principles">
+      <h2>Training principles</h2>
+      <div>
+        <h3>Overload principle</h3>
+        <p>The body will respond by getting stronger when increased demands are placed upon it. It must be gradual and progressive, because too much overload leads to injury and fatigue.</p>
+        <h3>Principle of progression</h3>
+        <p>Gradual increase of the demands placed on the body to get increased results. Start out slowly with lighter weights, then increase systematically as the body adapts.</p>
+        <p>Example: Milo of Croton carried a newborn calf every day until it grew into a bull.</p>
+        <h3>Principle of specificity</h3>
+        <p>The body adapts “specifically” to the demands placed upon it (force, speed, angle).</p>
+      </div>
+    </div>
+
+    <div class="block" id="u3-benefits">
+      <h2>Benefits</h2>
+      <div>
+        <p class="lead">Benefits of muscular fitness</p>
+        <ul class="cols">
+          <li>Increased energy</li><li>Increased self-esteem</li><li>Improved physical performance</li><li>Injury prevention</li>
+          <li>Better sleep</li><li>Improved health</li><li>Lower levels of fat</li><li>Increased life expectancy</li>
+          <li>Less muscular fatigue</li><li>Athletic performance</li><li>Protects bone density</li>
+        </ul>
+      </div>
+    </div>
+
+    <nav class="pager" data-pager="u3" aria-label="Unit"></nav>
+  </div>
+</section>
+
+<!-- 04 -->
+<section class="view unit" id="view-u4" data-title="04 Muscles & Machines">
+  <div class="wrap">
+    <header class="unit-head"><span class="unit-num">04</span><h1 tabindex="-1">Muscles &amp; Machines</h1></header>
+
+    <div class="map" id="map">
+      <div class="map-main">
+        <div class="seg" id="map-modes" role="group" aria-label="Muscle map mode">
+          <button data-mode="explore" class="is-on" aria-pressed="true">Muscles</button>
+          <button data-mode="machines" aria-pressed="false">Machines</button>
+          <button data-mode="quiz" aria-pressed="false">Quiz mode</button>
+          <button data-mode="type" aria-pressed="false">Type it</button>
+        </div>
+        <div class="machine-list" id="machine-list" hidden></div>
+        <div id="figure"></div>
+      </div>
+      <div class="map-panel" id="map-panel" aria-live="polite"></div>
+    </div>
+
+    <div class="block" id="u4-key">
+      <h2>Chart key</h2>
+      <div>
+        <p class="hidden-note" id="key-hidden" hidden>The key is hidden during the quizzes.</p>
+        <table class="tbl key" id="key-table">
+          <thead><tr><th scope="col">#</th><th scope="col">Muscle</th><th scope="col">Machine / exercise</th></tr></thead>
+          <tbody id="key-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <nav class="pager" data-pager="u4" aria-label="Unit"></nav>
+  </div>
+</section>
+
+<!-- 05 -->
+<section class="view unit" id="view-u5" data-title="05 Body Composition">
+  <div class="wrap">
+    <header class="unit-head"><span class="unit-num">05</span><h1 tabindex="-1">Body Composition</h1></header>
+    <div class="jump" data-jump></div>
+
+    <div class="block" id="u5-what">
+      <h2>What it is</h2>
+      <div>
+        <p><strong>Body composition:</strong> the relative comparison of body fat to lean body mass (muscle, bone, organs). It compares both body fat and lean body mass.</p>
+        <p class="lead">Example: 150 lb body weight × 20% body fat</p>
+        <div class="split-bar" role="img" aria-label="30 pounds fat weight and 120 pounds fat-free weight">
+          <span class="fat" style="width:20%">30 lbs</span><span class="lean" style="width:80%">120 lbs</span>
+        </div>
+        <p class="bar-key"><span>Fat weight</span><span>Fat-free weight</span></p>
+        <p><strong>Why know it:</strong> evaluate your health, plan a better program for weight management, evaluate your progress on an exercise and nutrition plan.</p>
+      </div>
+    </div>
+
+    <div class="block" id="u5-functions">
+      <h2>Functions of body fat</h2>
+      <div>
+        <ol class="numbered">
+          <li>Normal physiological functioning</li>
+          <li>Protection of organs from bodily harm</li>
+          <li>Insulation and body temperature regulation</li>
+          <li>Absorption of fat-soluble vitamins (A, D, E &amp; K)</li>
+          <li>Energy source (stored energy)</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="tool" id="u5-types">
+      <h2>Two types of fat</h2>
+      <div class="fat-grid">
+        <svg viewBox="0 0 460 330" role="img" aria-label="Cross-section of the torso. Subcutaneous fat is a layer just under the skin. Visceral fat sits around the organs.">
+          <ellipse cx="230" cy="172" rx="175" ry="120" fill="var(--tint)" stroke="var(--ink)" stroke-width="4"/>
+          <ellipse cx="230" cy="172" rx="150" ry="96" fill="var(--shape)" stroke="var(--ink)" stroke-width="1"/>
+          <ellipse cx="230" cy="172" rx="130" ry="78" fill="var(--paper)" stroke="var(--ink)" stroke-width="1"/>
+          <g fill="var(--accent)">
+            <circle cx="150" cy="150" r="24"/><circle cx="178" cy="196" r="28"/><circle cx="224" cy="132" r="22"/>
+            <circle cx="282" cy="138" r="24"/><circle cx="312" cy="178" r="26"/><circle cx="272" cy="212" r="26"/>
+            <circle cx="226" cy="214" r="18"/><circle cx="222" cy="172" r="18"/>
+          </g>
+          <g fill="#7d7f7d" stroke="var(--ink)" stroke-width="1.500">
+            <path d="M152 164c0-22 28-30 44-18s10 42-10 42-34-6-34-24z"/>
+            <path d="M246 150c14-14 54-10 58 12s-22 36-40 30-30-30-18-42z"/>
+            <circle cx="222" cy="186" r="11"/>
+          </g>
+          <g fill="none" stroke="var(--ink)" stroke-width="1.500">
+            <path d="M50 28v76l40 24"/>
+            <path d="M410 28v50l-74 92"/>
+            <path d="M230 304v-45"/>
+            <path d="M350 304l-68-114"/>
+            <path d="M46 304l50-55"/>
+          </g>
+          <g class="svg-label">
+            <text x="10" y="20">Subcutaneous fat</text>
+            <text x="450" y="20" text-anchor="end">Visceral fat</text>
+            <text x="10" y="322">Skin</text>
+            <text x="230" y="322" text-anchor="middle">Muscle</text>
+            <text x="350" y="322" text-anchor="middle">Organs</text>
+          </g>
+        </svg>
+        <div>
+          <h3>Subcutaneous</h3>
+          <p>Fat stored just underneath the skin; the fat you can feel on your arms and legs. It’s for warmth and protection, as well as storage of extra energy.</p>
+          <h3>Visceral</h3>
+          <p>Fat stored in and around internal organs and the torso, also known as intra-abdominal fat or organ fat. Excess can lead to increased risk for health problems (heart disease, type 2 diabetes). It’s usually the first fat to be lost in weight loss.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="block" id="u5-versus">
+      <h2>Fat vs. muscle</h2>
+      <div>
+        <p class="lead">Two different tissues</p>
+        <table class="tbl stack">
+          <thead><tr><th scope="col"></th><th scope="col">Muscle</th><th scope="col">Fat</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Properties</th><td data-label="Muscle">Fibrous, contractible and connective tissue</td><td data-label="Fat">Lipids, adipose tissue</td></tr>
+            <tr><th scope="row">Weight / density</th><td data-label="Muscle">Heavier / more dense</td><td data-label="Fat">Lighter / less dense</td></tr>
+            <tr><th scope="row">Function</th><td data-label="Muscle">Moves the body and maintains posture</td><td data-label="Fat">Protection, insulation and a source of energy</td></tr>
+            <tr><th scope="row">Response to exercise</th><td data-label="Muscle">Increases with exercise</td><td data-label="Fat">Decreases with exercise</td></tr>
+          </tbody>
+        </table>
+        <p class="poster-line">Fat can NOT be converted to muscle.</p>
+      </div>
+    </div>
+
+    <div class="block" id="u5-bmi">
+      <h2>BMI</h2>
+      <div>
+        <p><strong>BMI (Body Mass Index):</strong> a measure of relative size based on the mass (weight) and height of an individual.</p>
+        <p>Still widely used to screen for weight categories that may lead to health problems.</p>
+        <p><strong>Problem:</strong> BMI does not account for age, sex, ethnicity or muscle mass.</p>
+      </div>
+    </div>
+
+    <div class="block" id="u5-methods">
+      <h2>Measurement methods</h2>
+      <div><table class="tbl methods" id="method-table"><tbody></tbody></table></div>
+    </div>
+
+    <div class="tool" id="u5-match">
+      <h2>Match the method</h2>
+      <p class="hint">Tap a method, then tap its description.</p>
+      <div id="matcher"></div>
+    </div>
+
+    <div class="block" id="u5-percent">
+      <h2>Recommended body fat %</h2>
+      <div>
+        <p class="lead">Ages 20–40</p>
+        <div class="bf">
+          <div><span class="bf-n">About 12–18%</span>Males</div>
+          <div><span class="bf-n">About 18–24%</span>Females</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool" id="u5-timeline">
+      <h2>Fat cell timeline</h2>
+      <div class="timeline-scroll" tabindex="0" role="region" aria-label="Fat cell timeline">
+        <ol class="timeline" id="timeline"></ol>
+      </div>
+      <p class="swipe-note">Swipe the timeline sideways to see all 4 stages.</p>
+    </div>
+
+    <div class="block" id="u5-cells">
+      <h2>Fat cell notes</h2>
+      <div>
+        <ul class="ruled">
+          <li>Fat cell development is rapid in the first few years of life.</li>
+          <li>During growth, fat cells increase in number.</li>
+          <li>Fat cell number is set by your early twenties. After this, they increase in size.</li>
+          <li>When energy intake exceeds expenditure, fat cells increase in size.</li>
+          <li>With fat loss, the size of fat cells shrinks, but not the number.</li>
+          <li><strong>True/False, “The number of fat cells reduces in your lifetime”:</strong> False.</li>
+          <li>If fat cells have enlarged and energy intake keeps exceeding expenditure, fat cells can increase in number again.</li>
+          <li>Your lifestyle and dietary habits as a teenager are factors in determining your health as an adult.</li>
+        </ul>
+      </div>
+    </div>
+
+    <nav class="pager" data-pager="u5" aria-label="Unit"></nav>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section class="view" id="view-flashcards" data-title="Flashcards">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">Flashcards</h1></header>
+    <div class="seg wrapy" id="flash-units" role="group" aria-label="Pick a unit"></div>
+    <div class="seg flash-pile" id="flash-pile" role="group" aria-label="Pick a pile">
+      <button type="button" data-pile="all"></button>
+      <button type="button" data-pile="learning"></button>
+    </div>
+    <div class="flash-progress"><span id="flash-known"></span><span class="pct"><i id="flash-bar"></i></span></div>
+    <div class="flash-stage">
+      <button class="card" id="card" aria-label="Flip card">
+        <span class="card-in">
+          <span class="face front"><span class="card-tag" id="card-tag-f"></span><span class="card-text" id="card-front"></span><span class="card-simple simple" id="card-simple-f"></span></span>
+          <span class="face back"><span class="card-tag" id="card-tag-b"></span><span class="card-text" id="card-back"></span><span class="card-simple simple" id="card-simple-b"></span></span>
+        </span>
+      </button>
+    </div>
+    <div class="flash-mark">
+      <button class="btn" id="card-learning">Still learning</button>
+      <button class="btn solid" id="card-known">Got it</button>
+    </div>
+    <div class="flash-bar">
+      <button class="btn" id="card-prev">Back</button>
+      <span class="count" id="card-count" aria-live="polite"></span>
+      <button class="btn" id="card-next">Next</button>
+    </div>
+    <div class="flash-sub">
+      <button class="btn ghost" id="card-shuffle">Shuffle</button>
+      <button class="btn ghost" id="card-order">In order</button>
+    </div>
+  </div>
+</section>
+
+<!-- PRACTICE TEST -->
+<section class="view" id="view-test" data-title="Practice test">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">Practice test</h1></header>
+    <div id="test-root"></div>
+  </div>
+</section>
+
+<!-- UNITS -->
+<section class="view" id="view-units" data-title="Units">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">Units</h1></header>
+    <div class="unit-list" id="unit-list"></div>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="view" id="view-settings" data-title="Settings">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">Settings</h1></header>
+
+    <h2 class="set-group">You</h2>
+    <div class="set-row">
+      <label class="set-label" for="set-name">Your name</label>
+      <p class="note">Shows on Home. Saved on this device only.</p>
+      <input class="text-input" id="set-name" type="text" maxlength="24" autocomplete="off" placeholder="Type your name">
+    </div>
+    <div class="set-row">
+      <label class="set-label" for="exam-date">Midterm date</label>
+      <p class="note">Adds a countdown to the Home scoreboard.</p>
+      <div class="date-row">
+        <input class="date-input" id="exam-date" type="date">
+        <button type="button" class="btn ghost" id="exam-clear">Clear date</button>
+      </div>
+    </div>
+
+    <h2 class="set-group">Look</h2>
+    <div class="set-row">
+      <span class="set-label">Theme</span>
+      <div class="seg" data-set="theme">
+        <button type="button" data-val="light">Light</button>
+        <button type="button" data-val="dark">Dark</button>
+        <button type="button" data-val="auto">Match device</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Team color</span>
+      <div class="seg wrap-seg" data-set="accent">
+        <button type="button" data-val="red"><i class="dot" style="background:#c4122f"></i>Red</button>
+        <button type="button" data-val="green"><i class="dot" style="background:#0b7a3e"></i>Green</button>
+        <button type="button" data-val="blue"><i class="dot" style="background:#1457b8"></i>Blue</button>
+        <button type="button" data-val="orange"><i class="dot" style="background:#b84a00"></i>Orange</button>
+      </div>
+      <label class="color-pick">Or pick your school color <input type="color" id="set-color" value="#c4122f"></label>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Heading font</span>
+      <div class="seg" data-set="font">
+        <button type="button" data-val="barlow">Sporty</button>
+        <button type="button" data-val="oswald">Bold</button>
+        <button type="button" data-val="plain">Plain</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Text size</span>
+      <div class="seg" data-set="size">
+        <button type="button" data-val="normal">Normal</button>
+        <button type="button" data-val="large">Large</button>
+        <button type="button" data-val="xl">Extra large</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Spacing</span>
+      <div class="seg" data-set="density">
+        <button type="button" data-val="comfy">Roomy</button>
+        <button type="button" data-val="compact">Compact</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Animations</span>
+      <div class="seg" data-set="motion">
+        <button type="button" data-val="on">On</button>
+        <button type="button" data-val="off">Off</button>
+      </div>
+    </div>
+
+    <h2 class="set-group">Studying</h2>
+    <div class="set-row">
+      <span class="set-label">Simple words</span>
+      <p class="note">Adds a plain-English note under your teacher's wording. Test answers stay in the teacher's wording.</p>
+      <div class="seg" data-set="simple">
+        <button type="button" data-val="off">Off</button>
+        <button type="button" data-val="on">On</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Flashcards show first</span>
+      <div class="seg" data-set="cardFirst">
+        <button type="button" data-val="term">Term</button>
+        <button type="button" data-val="answer">Answer</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Game Day length</span>
+      <div class="seg" data-set="gameLength">
+        <button type="button" data-val="15">15</button>
+        <button type="button" data-val="30">30</button>
+        <button type="button" data-val="all">All</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Open the app on</span>
+      <div class="seg wrap-seg" data-set="startPage">
+        <button type="button" data-val="home">Home</button>
+        <button type="button" data-val="last">Last page</button>
+        <button type="button" data-val="flashcards">Flashcards</button>
+        <button type="button" data-val="test">Test</button>
+      </div>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Home scoreboard</span>
+      <div class="seg" data-set="board">
+        <button type="button" data-val="show">Show</button>
+        <button type="button" data-val="hide">Hide</button>
+      </div>
+    </div>
+
+    <h2 class="set-group">App and data</h2>
+    <div class="set-row">
+      <span class="set-label">Put it on your phone</span>
+      <p>On iPhone, tap Share, then Add to Home Screen. On Android, open the browser menu, then choose Add to Home screen. It opens like an app.</p>
+      <button type="button" class="btn solid" id="install-btn" hidden>Install app</button>
+    </div>
+    <div class="set-row">
+      <span class="set-label">Backup</span>
+      <p class="note">Save your scores and settings to a file, then load it on another device.</p>
+      <div class="date-row">
+        <button type="button" class="btn" id="backup-save">Save backup</button>
+        <label class="btn file-btn">Load backup<input type="file" id="backup-load" accept=".json,application/json"></label>
+      </div>
+    </div>
+    <div class="test-actions">
+      <button type="button" class="btn ghost" id="settings-reset">Reset settings</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot"><div class="wrap">Study notes from class. Scores save on this device only.</div></footer>
+
+<nav class="tabbar" aria-label="App">
+  <a href="#home" data-tab="home"><svg aria-hidden="true"><use href="#t-home"></use></svg>Home</a>
+  <a href="#units" data-tab="units"><svg aria-hidden="true"><use href="#t-units"></use></svg>Units</a>
+  <a href="#flashcards" data-tab="flashcards"><svg aria-hidden="true"><use href="#t-cards"></use></svg>Cards</a>
+  <a href="#test" data-tab="test"><svg aria-hidden="true"><use href="#t-test"></use></svg>Test</a>
+  <a href="#settings" data-tab="settings"><svg aria-hidden="true"><use href="#t-settings"></use></svg>Settings</a>
+</nav>
+
+<dialog class="search" id="search" aria-label="Search">
+  <div class="search-top">
+    <input class="text-input" id="search-input" type="search" placeholder="Ask a question or search" autocomplete="off" aria-label="Ask a question or search the notes">
+    <button type="button" class="btn ghost" id="search-close">Close</button>
+  </div>
+  <div class="search-results" id="search-results"></div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="./js/data.js"></script>
+<script src="./js/simple.js"></script>
+<script src="./js/body.js"></script>
+<script src="./js/main.js"></script>
+</body>
+</html>
