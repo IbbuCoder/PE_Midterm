@@ -93,6 +93,7 @@ try {
       <a href="#flashcards">Flashcards</a>
       <a href="#test">Practice test</a>
       <a href="#settings">Settings</a>
+      <a href="#updates">What's new</a>
     </nav>
     <button type="button" class="icon-btn" id="search-btn" aria-label="Ask a question or search the notes"><svg aria-hidden="true"><use href="#i-search"></use></svg></button>
     <button type="button" class="dumb-btn" id="dumb-btn" aria-pressed="false">Simple words</button>
@@ -118,6 +119,7 @@ try {
       <button type="button" class="big-link" data-quick="daily"><strong>Daily 10</strong><span id="home-daily"></span></button>
       <button type="button" class="big-link" data-quick="game"><strong>Game Day</strong><span id="home-game"></span></button>
     </div>
+    <a class="whats-new" href="#updates"><b>New</b> <span id="home-news"></span></a>
     <button type="button" class="link-btn clear-all" id="clear-all">Clear all my progress</button>
   </div>
 </section>
@@ -866,15 +868,65 @@ try {
         <label class="btn file-btn">Load backup<input type="file" id="backup-load" accept=".json,application/json"></label>
       </div>
     </div>
+    <div class="set-row">
+      <span class="set-label">Welcome tour</span>
+      <p class="note">See the quick setup screen from your first visit again.</p>
+      <div class="date-row">
+        <button type="button" class="btn" id="welcome-again">Show welcome screen</button>
+        <a class="btn ghost" href="#updates">What's new</a>
+      </div>
+    </div>
     <div class="test-actions">
       <button type="button" class="btn ghost" id="settings-reset">Reset settings</button>
     </div>
   </div>
 </section>
 
+<!-- PATCH NOTES -->
+<section class="view" id="view-updates" data-title="What's new">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
+    <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
+
+    <article class="patch" id="patch-1-1">
+      <header class="patch-head"><h2>Version 1.1</h2><time datetime="2026-11-02">Nov 2, 2026</time><span class="patch-tag">Latest</span></header>
+      <h3>New</h3>
+      <ul>
+        <li>Welcome screen for first-time visitors. Pick your theme, team color, text size and simple words before you start.</li>
+        <li>This What's new page, so you can see what changed since your last visit.</li>
+        <li>Settings has a button to show the welcome screen again.</li>
+      </ul>
+    </article>
+
+    <article class="patch" id="patch-1-0-1">
+      <header class="patch-head"><h2>Version 1.0.1</h2><time datetime="2026-11-01">Nov 1, 2026</time></header>
+      <h3>Fixed</h3>
+      <ul>
+        <li>The site now loads correctly from its web address on GitHub Pages.</li>
+      </ul>
+    </article>
+
+    <article class="patch" id="patch-1-0">
+      <header class="patch-head"><h2>Version 1.0</h2><time datetime="2026-11-01">Nov 1, 2026</time></header>
+      <h3>First release</h3>
+      <ul>
+        <li>Notes for all 5 units: Intro, Cardio, Muscular, Muscles and machines, Body composition.</li>
+        <li>Interactive muscle map with explore, machine matcher, quiz and type-the-name modes.</li>
+        <li>Heart rate zone calculator, 1RM calculator and other hands-on tools.</li>
+        <li>Flashcards with Got it and Still learning piles.</li>
+        <li>Practice test, Daily 10, Game Day and a study plan that brings back your misses.</li>
+        <li>Search that answers questions from the notes.</li>
+        <li>Simple words mode for plain-English notes.</li>
+        <li>Settings for theme, team color, font, text size, spacing and more.</li>
+        <li>Works offline and installs on your phone. Backup your progress to a file.</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
 </main>
 
-<footer class="foot"><div class="wrap">Study notes from class. Scores save on this device only.</div></footer>
+<footer class="foot"><div class="wrap">Study notes from class. Scores save on this device only. <a href="#updates">What's new</a></div></footer>
 
 <nav class="tabbar" aria-label="App">
   <a href="#home" data-tab="home"><svg aria-hidden="true"><use href="#t-home"></use></svg>Home</a>
@@ -890,6 +942,53 @@ try {
     <button type="button" class="btn ghost" id="search-close">Close</button>
   </div>
   <div class="search-results" id="search-results"></div>
+</dialog>
+
+<dialog class="welcome" id="welcome" aria-labelledby="welcome-title">
+  <div class="welcome-in">
+    <p class="welcome-kicker">Welcome to PE Midterm</p>
+    <h2 id="welcome-title">Make it yours</h2>
+    <p class="welcome-lead">This site is fully customizable. Set it up the way you like. You can change all of this later in Settings.</p>
+
+    <div class="welcome-row">
+      <span class="set-label">Theme</span>
+      <div class="seg" data-set="theme">
+        <button type="button" data-val="light">Light</button>
+        <button type="button" data-val="dark">Dark</button>
+        <button type="button" data-val="auto">Match device</button>
+      </div>
+    </div>
+    <div class="welcome-row">
+      <span class="set-label">Team color</span>
+      <div class="seg wrap-seg" data-set="accent">
+        <button type="button" data-val="red"><i class="dot" style="background:#c4122f"></i>Red</button>
+        <button type="button" data-val="green"><i class="dot" style="background:#0b7a3e"></i>Green</button>
+        <button type="button" data-val="blue"><i class="dot" style="background:#1457b8"></i>Blue</button>
+        <button type="button" data-val="orange"><i class="dot" style="background:#b84a00"></i>Orange</button>
+      </div>
+    </div>
+    <div class="welcome-row">
+      <span class="set-label">Text size</span>
+      <div class="seg" data-set="size">
+        <button type="button" data-val="normal">Normal</button>
+        <button type="button" data-val="large">Large</button>
+        <button type="button" data-val="xl">Extra large</button>
+      </div>
+    </div>
+    <div class="welcome-row">
+      <span class="set-label">Simple words</span>
+      <div class="seg" data-set="simple">
+        <button type="button" data-val="off">Off</button>
+        <button type="button" data-val="on">On</button>
+      </div>
+    </div>
+
+    <p class="note welcome-more">More in Settings: your name, midterm countdown, school color, heading font, spacing, animations, flashcard order and more.</p>
+    <div class="welcome-actions">
+      <button type="button" class="btn ghost" id="welcome-settings">All settings</button>
+      <button type="button" class="btn solid" id="welcome-start">Start studying</button>
+    </div>
+  </div>
 </dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

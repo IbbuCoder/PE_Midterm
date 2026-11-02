@@ -196,6 +196,37 @@ html:not([data-simple]) .simple, html:not([data-simple]) .plain { display: none 
 .search-item b { display: block; font: 600 21px/1.15 var(--head); }
 .search-item span { display: block; color: var(--mute); font-size: 15px; line-height: 1.3; }
 
+/* Welcome screen */
+.welcome { width: min(560px, calc(100vw - 24px)); max-height: 90vh; max-height: 90dvh; margin: auto; padding: 0; background: var(--paper); color: var(--ink); border: 3px solid var(--ink); border-top: 8px solid var(--accent); overflow-y: auto; }
+.welcome::backdrop { background: rgba(0, 0, 0, .6); }
+.welcome[open] { animation: welcome-in .22s ease-out; }
+@keyframes welcome-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.welcome-in { padding: 20px 20px 18px; }
+.welcome-kicker { margin: 0; font: 600 16px/1 var(--head); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.welcome h2 { margin: 6px 0 0; font: 700 clamp(34px, 8vw, 46px)/1 var(--head); text-transform: uppercase; }
+.welcome-lead { margin: 10px 0 4px; }
+.welcome-row { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.welcome-row .set-label { font-size: 20px; margin-bottom: 0; }
+.welcome-row .seg { margin-top: 6px; }
+.welcome-more { margin: 12px 0 0; font-size: 15px; }
+.welcome-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+/* Patch notes */
+.patch-intro { margin: 14px 0 0; }
+.patch { padding: 18px 0 10px; border-bottom: 1px solid var(--rule); }
+.patch-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.patch-head h2 { margin: 0; font: 700 32px/1.1 var(--head); }
+.patch-head time { color: var(--mute); font-size: 16px; }
+.patch-tag { padding: 2px 8px; background: var(--accent); color: var(--on-accent); font: 600 14px/1.3 var(--head); text-transform: uppercase; letter-spacing: .05em; }
+.patch h3 { margin: 12px 0 4px; font: 600 20px/1.2 var(--head); text-transform: uppercase; color: var(--accent); }
+.patch ul { margin: 0; padding-left: 22px; }
+.patch li { margin: 4px 0; }
+.whats-new { display: flex; align-items: baseline; gap: 10px; margin-top: 18px; padding: 10px 12px; background: var(--fill); border-left: 5px solid var(--rule); text-decoration: none; }
+.whats-new b { font: 600 15px/1.2 var(--head); text-transform: uppercase; letter-spacing: .06em; color: var(--mute); }
+.whats-new.is-unread { border-left-color: var(--accent); }
+.whats-new.is-unread b { color: var(--accent); }
+.whats-new:hover span { text-decoration: underline; }
+
 .toast { position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom)); z-index: 60; transform: translate(-50%, 16px); max-width: calc(100vw - 32px); padding: 10px 16px; background: var(--chrome); color: var(--chrome-text); border-left: 5px solid var(--accent); font-weight: 600; opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; }
 .toast.is-on { opacity: 1; transform: translate(-50%, 0); }
 
@@ -558,7 +589,7 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 }
 
 @media print {
-  .top, .foot, .pager, .jump, .tool, .map-main, .map-panel, .clear-all, .tabbar, .toast { display: none !important; }
+  .top, .foot, .pager, .jump, .tool, .map-main, .map-panel, .clear-all, .whats-new, .welcome, .tabbar, .toast { display: none !important; }
   body { background: #fff; color: #000; font-size: 13px; }
   .block { break-inside: avoid; }
 }
