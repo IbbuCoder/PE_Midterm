@@ -117,6 +117,7 @@
     paintAppIcon(root, dark);
     $('#set-color').value = settings.color;
     if (document.activeElement !== $('#set-name')) $('#set-name').value = settings.name;
+    if (document.activeElement !== $('#welcome-name')) $('#welcome-name').value = settings.name;
     if (settings.simple === 'on') root.setAttribute('data-simple', '');
     else root.removeAttribute('data-simple');
     $('#dumb-btn').setAttribute('aria-pressed', String(settings.simple === 'on'));
@@ -151,6 +152,8 @@
     $('#exam-date').addEventListener('change', function (e) { changeSetting('exam', e.target.value); });
     $('#exam-clear').addEventListener('click', function () { changeSetting('exam', ''); });
     $('#set-name').addEventListener('input', function (e) { changeSetting('name', e.target.value.trim()); });
+    $('#welcome-name').addEventListener('input', function (e) { changeSetting('name', e.target.value.trim()); });
+    $('#welcome-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
     $('#set-color').addEventListener('input', function (e) {
       settings.color = e.target.value;
       changeSetting('accent', 'custom');
@@ -168,7 +171,7 @@
   /* ---------- Welcome screen and patch notes ---------- */
 
   // Bump this when a new entry goes at the top of the What's new page.
-  var LATEST = { version: '1.1', note: 'Version 1.1: a welcome screen and this patch notes page.' };
+  var LATEST = { version: '1.2', note: 'Version 1.2: a 45-minute mock midterm and a Weak spots page.' };
 
   // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
   function openDialog(box) {
@@ -186,6 +189,7 @@
     function finish() {
       saved.seenWelcome = true;
       save();
+      if ($('#view-home').classList.contains('is-active')) renderHome();
     }
     box.addEventListener('close', finish);
     box.addEventListener('click', function (e) { if (e.target === box) closeDialog(box); });
@@ -375,6 +379,12 @@
     page('Daily 10', 'Page', 'daily streak quick', quick('daily'));
     page('Game Day', 'Page', 'mock exam final', quick('game'));
     page('Settings', 'Page', 'options customize preferences', function () { location.hash = 'settings'; });
+    page('Weak spots', 'Page', 'weak weakest missed misses review what to study next struggling', function () { location.hash = 'weak'; });
+    page('Mock midterm', 'Page', 'mock midterm exam timed timer 45 minutes full practice', function () {
+      test.setup = true;
+      test.mockIntro = true;
+      if (location.hash === '#test') renderTest(); else location.hash = 'test';
+    });
     page('What\'s new', 'Page', 'patch notes updates changelog changes version new features', function () { location.hash = 'updates'; });
     page('Welcome screen', 'Setting', 'welcome tour setup customize intro first', function () { openDialog($('#welcome')); });
     page('Muscle map', 'Tool', 'body figure diagram chart numbers front back', function () { goToMap('explore'); }, 25);
@@ -748,6 +758,7 @@
       else a.removeAttribute('aria-current');
     });
     var tabId = /^u\d$/.test(id) ? 'units' : id;
+    if (['settings', 'updates', 'weak', 'more'].indexOf(id) > -1) tabId = 'more';
     $$('.tabbar a').forEach(function (a) {
       if (a.dataset.tab === tabId) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
@@ -763,6 +774,7 @@
     if (id === 'home') { renderHome(); renderNews(); }
     if (id === 'test') renderTest();
     if (id === 'units') renderUnits();
+    if (id === 'weak') renderWeak();
     window.scrollTo(0, 0);
     if (!first) {
       var h = $('h1', view);
@@ -801,8 +813,13 @@
       var quick = e.target.closest('[data-quick]');
       if (quick) {
         test.setup = false;
+        test.mockIntro = false;
         startTest(quick.dataset.quick);
         location.hash = 'test';
+      }
+      if (e.target.closest('[data-mock]')) {
+        test.setup = true;
+        test.mockIntro = true;
       }
       if (e.target.closest('[data-print]')) window.print();
       var cards = e.target.closest('[data-flash]');
@@ -910,6 +927,64 @@
     $('#home-daily').textContent = 'A quick mix of your misses and weakest unit';
     $('#home-game').textContent = gameLength() + ' mixed questions, answers at the end. Last: ' + scoreText(last.game);
     renderStudy();
+  }
+
+  /* ---------- Weak spots ---------- */
+
+  // Flashcards someone has marked Still learning (not ones they haven't tried yet).
+  function learningCards(unitId) {
+    var review = saved.review || {};
+    return PE.flashcards.filter(function (c) {
+      return 'u' + c.u === unitId && !isKnown(c) && review['c:' + cardKey(c)];
+    });
+  }
+
+  function renderWeak() {
+    var root = $('#weak-root');
+    var allMisses = missedIds().length;
+    var rows = PE.units.map(function (u) {
+      return { unit: u, score: unitScore(u), misses: unitMisses(u.id), learning: learningCards(u.id), last: (saved.byUnit || {})[u.id] };
+    });
+    var tried = allMisses || Object.keys(saved.test || {}).length || Object.keys(saved.known || {}).length ||
+      rows.some(function (r) { return r.learning.length; });
+    if (!tried) {
+      root.innerHTML = '<p class="weak-lead">Nothing here yet. Take a test or go through some flashcards, and this page shows you what to work on.</p>' +
+        '<div class="test-actions"><button type="button" class="btn solid" data-quick="daily">Daily 10</button><a class="btn" href="#test" data-mock>Mock midterm</a></div>';
+      return;
+    }
+    rows.sort(function (a, b) { return a.score - b.score; });
+    var weak = rows.filter(function (r) { return r.score < 100 || r.misses.length || r.learning.length; });
+    var strong = rows.filter(function (r) { return weak.indexOf(r) === -1; });
+    var top = weak[0];
+
+    root.innerHTML =
+      (top
+        ? '<p class="weak-lead">Start with <b>' + top.unit.num + ' ' + esc(top.unit.short) + '</b>. It\'s your lowest unit at ' + top.score + '%.</p>'
+        : '<p class="weak-lead">No weak spots right now. Try the mock midterm to be sure.</p>') +
+      (allMisses ? '<div class="test-actions"><button type="button" class="btn solid" data-quick="missed">Retry all ' + allMisses + ' misses</button></div>' : '') +
+      weak.map(function (r) {
+        var u = r.unit;
+        var facts = [
+          r.misses.length ? r.misses.length + (r.misses.length === 1 ? ' missed question' : ' missed questions') : 'No missed questions',
+          r.learning.length ? r.learning.length + (r.learning.length === 1 ? ' flashcard' : ' flashcards') + ' still learning' : '',
+          r.last ? 'Last unit test ' + r.last.score + ' / ' + r.last.total : 'Unit test not taken'
+        ].filter(Boolean).join(' · ');
+        return '<div class="weak-unit">' +
+          '<div class="weak-head"><span class="sb-num">' + u.num + '</span><span class="sb-name">' + esc(u.title) + '</span><span class="sb-pct">' + r.score + '%</span></div>' +
+          '<span class="pct"><i style="width:' + r.score + '%"></i></span>' +
+          '<p class="note">' + facts + '</p>' +
+          (r.misses.length
+            ? '<details><summary>See what you missed</summary><ul class="missed">' + r.misses.map(function (id) {
+                var q = PE.questions[id];
+                return '<li><span>' + esc(q.q) + '</span>' + esc(q.c[q.a]) + '</li>';
+              }).join('') + '</ul></details>'
+            : '') +
+          '<div class="test-actions">' +
+          (r.misses.length ? '<button type="button" class="btn" data-quick="m' + u.id + '">Retry misses</button>' : '<a class="btn" href="#test" data-scope="' + u.id + '">Unit test</a>') +
+          (r.learning.length ? '<a class="btn" href="#flashcards" data-flash="' + u.id + '">Flashcards</a>' : '') +
+          '<a class="btn ghost" href="#' + u.id + '">Notes</a></div></div>';
+      }).join('') +
+      (strong.length ? '<p class="note weak-good">Looking good: ' + strong.map(function (r) { return r.unit.num + ' ' + esc(r.unit.short); }).join(', ') + '</p>' : '');
   }
 
   /* ---------- Muscle map and machine matcher ---------- */
@@ -1886,7 +1961,7 @@
     PE.units.forEach(function (u) {
       var ids = run.ids.filter(function (id) { return 'u' + PE.questions[id].u === u.id; });
       if (!ids.length) return;
-      var wrong = ids.filter(function (id) { return run.missed.indexOf(id) > -1; }).length;
+      var wrong = ids.filter(function (id) { return isWrong(run, id); }).length;
       saved.byUnit[u.id] = { score: ids.length - wrong, total: ids.length };
     });
   }
@@ -1897,9 +1972,24 @@
     if (scope === 'daily') return 'Daily 10';
     if (scope === 'game') return 'Game Day';
     if (scope === 'study') return 'Study today';
+    if (scope === 'mock') return 'Mock midterm';
+    if (isMissScope(scope)) return 'Retry ' + unitOf(scope.slice(1)).num + ' ' + unitOf(scope.slice(1)).short + ' misses';
     if (isOneQuestion(scope)) return 'One question';
-    var u =PE.units.filter(function (x) { return x.id === scope; })[0];
+    var u = unitOf(scope);
     return u.num + ' ' + u.title;
+  }
+
+  function unitOf(id) {
+    return PE.units.filter(function (x) { return x.id === id; })[0];
+  }
+
+  // 'missed' retries every miss. 'mu2' retries only the misses from unit 02.
+  function isMissScope(scope) {
+    return scope === 'missed' || /^mu\d$/.test(scope);
+  }
+
+  function unitMisses(unitId) {
+    return missedIds().filter(function (id) { return 'u' + PE.questions[id].u === unitId; });
   }
 
   function keepRun() {
@@ -1918,6 +2008,8 @@
       if (scope === 'all' || 'u' + q.u === scope || scope === 'q' + i) ids.push(i);
     });
     if (scope === 'missed') ids = missedIds();
+    if (/^mu\d$/.test(scope)) ids = unitMisses(scope.slice(1));
+    if (scope === 'mock') ids = PE.questions.map(function (q, i) { return i; });
     if (scope === 'daily') ids = dailyIds();
     if (scope === 'game') ids = shuffle(PE.questions.map(function (q, i) { return i; })).slice(0, gameLength());
     if (scope === 'study') {
@@ -1930,7 +2022,11 @@
       renderTest();
       return;
     }
-    test.run = { scope: scope, exam: scope === 'game', ids: shuffle(ids), pos: 0, right: 0, missed: [], order: null, picked: null };
+    test.run = { scope: scope, exam: scope === 'game' || scope === 'mock', ids: shuffle(ids), pos: 0, right: 0, missed: [], order: null, picked: null };
+    if (scope === 'mock') {
+      test.run.started = Date.now();
+      test.run.endsAt = test.run.started + MOCK_MINUTES * 60000;
+    }
     prepareQuestion();
     keepRun();
     renderTest();
@@ -1947,6 +2043,20 @@
     run.order = q.t === 'tf' ? idx : shuffle(idx);
   }
 
+  function renderMockIntro(root) {
+    var last = (saved.test || {}).mock;
+    root.innerHTML =
+      '<div class="mock-intro">' +
+      '<h2>Mock midterm</h2>' +
+      '<ul><li>All ' + PE.questions.length + ' questions, mixed up</li><li>' + MOCK_MINUTES + ' minutes on the clock</li>' +
+      '<li>Answers and your score by unit at the end</li><li>The timer keeps running if you leave the page</li></ul>' +
+      (last ? '<p class="note">Last time: ' + last.score + ' / ' + last.total + '</p>' : '') +
+      '<div class="test-actions"><button type="button" class="btn solid" data-mock-start>Start the clock</button>' +
+      '<button type="button" class="btn ghost" data-mock-cancel>Not now</button></div></div>';
+    var go = $('[data-mock-start]', root);
+    if (go) go.focus({ preventScroll: true });
+  }
+
   function renderSetup(root) {
     var last = saved.test || {};
     var scopes = ['all'].concat(PE.units.map(function (u) { return u.id; }));
@@ -1955,9 +2065,10 @@
     var toStudy = studyCount(studyPlan());
     root.innerHTML =
       (toStudy ? '<div class="test-actions" style="margin-bottom:16px"><button type="button" class="btn solid" data-quick="study">Study today (' + toStudy + ')</button></div>' : '') +
-      (run && !run.finished ? '<div class="test-actions" style="margin-bottom:16px"><button type="button" class="btn solid" data-resume>Resume ' + esc(scopeName(run.scope)) + ', question ' + (run.pos + 1) + ' of ' + run.ids.length + '</button></div>' : '') +
+      (run && !run.finished ? '<div class="test-actions" style="margin-bottom:16px"><button type="button" class="btn solid" data-resume>Resume ' + esc(scopeName(run.scope)) + ', question ' + (run.pos + 1) + ' of ' + run.ids.length + (run.endsAt ? ', ' + clockText(run.endsAt - Date.now()) + ' left' : '') + '</button></div>' : '') +
       (misses ? '<div class="test-actions" style="margin-bottom:16px"><button type="button" class="btn solid" data-retry>Retry my misses (' + misses + ')</button></div>' : '') +
-      '<div class="test-actions" style="margin-bottom:16px"><button type="button" class="btn" data-quick="daily">Daily 10</button><button type="button" class="btn" data-quick="game">Game Day (' + gameLength() + ', answers at the end)</button></div>' +
+      '<div class="test-actions" style="margin-bottom:16px"><button type="button" class="btn" data-quick="daily">Daily 10</button><button type="button" class="btn" data-quick="game">Game Day (' + gameLength() + ', answers at the end)</button>' +
+      '<button type="button" class="btn" data-mock-intro>Mock midterm (' + MOCK_MINUTES + ' min)</button></div>' +
       '<ul class="scope-list">' + scopes.map(function (s) {
         return '<li><label><input type="radio" name="scope" value="' + s + '"' + (s === test.scope ? ' checked' : '') + '>' +
           '<span class="scope-name">' + esc(scopeName(s)) + '</span>' +
@@ -1972,7 +2083,8 @@
     var answered = run.picked !== null;
     var isRight = answered && run.picked === q.a;
     root.innerHTML =
-      '<div class="t-progress"><span>Question ' + (run.pos + 1) + ' of ' + run.ids.length + '</span><span>' + (run.exam ? 'Answers at the end' : run.right + ' right') + '</span></div>' +
+      '<div class="t-progress"><span>Question ' + (run.pos + 1) + ' of ' + run.ids.length + '</span>' +
+        (run.endsAt ? '<span class="t-timer" data-timer role="timer"></span>' : '<span>' + (run.exam ? 'Answers at the end' : run.right + ' right') + '</span>') + '</div>' +
       '<div class="t-bar"><i style="width:' + ((run.pos + (answered ? 1 : 0)) / run.ids.length * 100) + '%"></i></div>' +
       '<p class="t-q">' + (q.t === 'tf' ? 'True or false: ' : '') + esc(q.q) + '</p>' +
       '<div class="opts">' + run.order.map(function (i) {
@@ -1986,7 +2098,8 @@
           '<span class="t-back">' + esc(backText(run.ids[run.pos])) + '</span></p>' +
           '<div class="test-actions"><button type="button" class="btn solid" data-next>' + (run.pos + 1 === run.ids.length ? 'See score' : 'Next question') + '</button></div>'
         : '') +
-      '<div class="test-actions"><button type="button" class="link-btn" data-quit>Leave test (your place is saved)</button></div>';
+      '<div class="test-actions"><button type="button" class="link-btn" data-quit>' + (run.endsAt ? 'Leave test (the clock keeps running)' : 'Leave test (your place is saved)') + '</button></div>';
+    paintTimer();
     var nextBtn = $('[data-next]', root);
     if (nextBtn) nextBtn.focus({ preventScroll: true });
   }
@@ -2023,19 +2136,22 @@
   function renderResult(root) {
     var run = test.run;
     var byUnit = PE.units.map(function (u) {
-      if (run.scope !== 'all' && run.scope !== 'game') return '';
+      if (run.scope !== 'all' && run.scope !== 'game' && run.scope !== 'mock') return '';
       var ids = run.ids.filter(function (id) { return 'u' + PE.questions[id].u === u.id; });
       if (!ids.length) return '';
-      var right = ids.filter(function (id) { return run.missed.indexOf(id) === -1; }).length;
+      var right = ids.filter(function (id) { return !isWrong(run, id); }).length;
       return '<div><span>' + u.num + ' ' + esc(u.short) + '</span><span>' + right + ' / ' + ids.length + '</span>' +
         '<span class="pct"><i style="width:' + pct(right, ids.length) + '%"></i></span></div>';
     }).join('');
     root.innerHTML =
       '<p class="t-score">' + run.right + ' <small>/ ' + run.ids.length + '</small></p>' +
-      '<p>' + esc(scopeName(run.scope)) + ': ' + Math.round(run.right / run.ids.length * 100) + '%</p>' +
+      '<p>' + esc(scopeName(run.scope)) + ': ' + Math.round(run.right / run.ids.length * 100) + '%' +
+        (run.endsAt ? '. ' + (run.unanswered && run.unanswered.length
+          ? 'Time ran out with ' + run.unanswered.length + ' unanswered.'
+          : 'Finished in ' + Math.max(1, Math.round((run.done - run.started) / 60000)) + ' of ' + MOCK_MINUTES + ' minutes.') : '') + '</p>' +
       (byUnit ? '<div class="by-unit">' + byUnit + '</div>' : '') +
-      (run.missed.length
-        ? '<h2 style="font-size:28px;margin-top:20px">Review these</h2><ul class="missed">' + run.missed.map(function (id) {
+      (run.missed.length || (run.unanswered || []).length
+        ? '<h2 style="font-size:28px;margin-top:20px">Review these</h2><ul class="missed">' + run.missed.concat(run.unanswered || []).map(function (id) {
             var item = itemOf(id);
             return isCardId(id)
               ? '<li><span>' + esc(item.front) + '</span>' + esc(item.back) + '</li>'
@@ -2044,31 +2160,78 @@
         : '') +
       (run.scope === 'study'
         ? studyDoneActions()
-        : '<div class="test-actions"><button type="button" class="btn solid" data-again>Take it again</button><button type="button" class="btn" data-setup>Pick another test</button></div>');
+        : '<div class="test-actions"><button type="button" class="btn solid" data-again>Take it again</button><button type="button" class="btn" data-setup>Pick another test</button>' +
+          (run.scope === 'mock' ? '<a class="btn" href="#weak">See weak spots</a>' : '') + '</div>');
+  }
+
+  function isWrong(run, id) {
+    return run.missed.indexOf(id) > -1 || (run.unanswered || []).indexOf(id) > -1;
+  }
+
+  /* ---------- Mock midterm clock ---------- */
+
+  var MOCK_MINUTES = 45;
+
+  function clockText(ms) {
+    var sec = Math.max(0, Math.ceil(ms / 1000));
+    var m = Math.floor(sec / 60);
+    var r = sec % 60;
+    return m + ':' + (r < 10 ? '0' : '') + r;
+  }
+
+  function paintTimer() {
+    var el = $('[data-timer]');
+    var run = test.run;
+    if (!el || !run || !run.endsAt) return;
+    var left = run.endsAt - Date.now();
+    el.textContent = clockText(left) + ' left';
+    el.classList.toggle('is-low', left < 5 * 60000);
+  }
+
+  // Ends the mock midterm if the clock ran out, even if it ran out while the page was closed.
+  function checkClock() {
+    var run = test.run;
+    if (!run || run.finished || !run.endsAt || Date.now() < run.endsAt) return false;
+    run.unanswered = run.ids.slice(run.pos);
+    run.pos = run.ids.length;
+    test.setup = false;
+    test.mockIntro = false;
+    nextQuestion(run, true);
+    toast('Time is up. Mock midterm handed in.');
+    return true;
+  }
+
+  function startClock() {
+    setInterval(function () {
+      if (checkClock()) return;
+      paintTimer();
+    }, 1000);
   }
 
   function renderTest() {
     var root = $('#test-root');
     var run = test.run;
-    if (!run || test.setup) renderSetup(root);
+    if (test.mockIntro && !(run && run.scope === 'mock' && !run.finished)) renderMockIntro(root);
+    else if (!run || test.setup) renderSetup(root);
     else if (run.finished) renderResult(root);
     else if (isCardId(run.ids[run.pos])) renderStudyCard(root);
     else renderQuestion(root);
   }
 
-  function nextQuestion(run) {
-    run.pos++;
+  function nextQuestion(run, timedOut) {
+    if (!timedOut) run.pos++;
     if (run.pos >= run.ids.length) {
       run.pos = run.ids.length - 1;
       run.finished = true;
+      run.done = Date.now();
       if (run.scope === 'daily') {
         markDaily();
         toast('Daily 10 done. Streak: ' + saved.streak.count);
-      } else if (run.scope !== 'missed' && run.scope !== 'study' && !isOneQuestion(run.scope)) {
+      } else if (!isMissScope(run.scope) && run.scope !== 'study' && !isOneQuestion(run.scope)) {
         saved.test = saved.test || {};
         saved.test[run.scope] = { score: run.right, total: run.ids.length };
         recordUnits(run);
-        toast('Score saved');
+        if (!timedOut) toast('Score saved');
       }
       saved.run = null;
       save();
@@ -2077,7 +2240,7 @@
       keepRun();
     }
     renderTest();
-    window.scrollTo(0, 0);
+    if (!timedOut || location.hash === '#test') window.scrollTo(0, 0);
   }
 
   function buildTest() {
@@ -2095,16 +2258,30 @@
     root.addEventListener('click', function (e) {
       var t = e.target;
       var run = test.run;
-      if (t.closest('[data-start]')) {
+      if (t.closest('[data-mock-intro]')) {
+        test.mockIntro = true;
+        renderTest();
+      } else if (t.closest('[data-mock-start]')) {
+        test.mockIntro = false;
+        test.setup = false;
+        startTest('mock');
+        window.scrollTo(0, 0);
+      } else if (t.closest('[data-mock-cancel]')) {
+        test.mockIntro = false;
+        test.setup = true;
+        renderTest();
+      } else if (t.closest('[data-start]')) {
         test.setup = false;
         startTest(test.scope);
       } else if (t.closest('[data-resume]')) {
         test.setup = false;
+        test.mockIntro = false;
         renderTest();
       } else if (t.closest('[data-retry]')) {
         test.setup = false;
         startTest('missed');
       } else if (t.closest('[data-pick]')) {
+        if (checkClock()) return;
         var q = PE.questions[run.ids[run.pos]];
         run.picked = Number(t.closest('[data-pick]').dataset.pick);
         if (run.picked === q.a) run.right++;
@@ -2130,6 +2307,12 @@
         test.setup = true;
         renderTest();
       } else if (t.closest('[data-again]')) {
+        if (run.scope === 'mock') {
+          test.mockIntro = true;
+          test.setup = true;
+          renderTest();
+          return;
+        }
         startTest(run.scope);
       } else if (t.closest('[data-setup]')) {
         test.run = null;
@@ -2180,6 +2363,8 @@
     });
 
     buildSearch();
+    checkClock();
+    startClock();
 
     if (!location.hash && settings.startPage !== 'home') {
       var opening = settings.startPage === 'last' ? saved.lastPage : settings.startPage;

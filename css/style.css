@@ -202,15 +202,40 @@ html:not([data-simple]) .simple, html:not([data-simple]) .plain { display: none 
 .welcome::backdrop { background: rgba(0, 0, 0, .6); }
 .welcome[open] { animation: welcome-in .22s ease-out; }
 @keyframes welcome-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-.welcome-in { padding: 20px 20px 18px; }
+.welcome-in { padding: 20px 20px 18px; outline: none; }
 .welcome-kicker { margin: 0; font: 600 16px/1 var(--head); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
 .welcome h2 { margin: 6px 0 0; font: 700 clamp(34px, 8vw, 46px)/1 var(--head); text-transform: uppercase; }
 .welcome-lead { margin: 10px 0 4px; }
 .welcome-row { padding: 12px 0; border-bottom: 1px solid var(--rule); }
 .welcome-row .set-label { font-size: 20px; margin-bottom: 0; }
 .welcome-row .seg { margin-top: 6px; }
+.welcome-name { max-width: none; margin-top: 6px; }
 .welcome-more { margin: 12px 0 0; font-size: 15px; }
 .welcome-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+/* More, Weak spots and Mock midterm */
+.more-list { margin-top: 8px; }
+.more-list a { display: block; padding: 14px 0; border-bottom: 1px solid var(--rule); text-decoration: none; }
+.more-list b { display: block; font: 700 28px/1.1 var(--head); }
+.more-list span { color: var(--mute); font-size: 16px; }
+.more-list a:hover b { color: var(--accent); }
+.weak-lead { font-size: 20px; margin: 18px 0 4px; }
+.weak-unit { padding: 18px 0; border-bottom: 1px solid var(--rule); }
+.weak-head { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; column-gap: 10px; align-items: baseline; }
+.weak-head .sb-num { font: 700 32px/1 var(--head); color: var(--accent); }
+.weak-head .sb-name { font: 600 25px/1.1 var(--head); }
+.weak-head .sb-pct { font: 700 24px/1 var(--head); }
+.weak-unit .pct { display: block; margin-top: 8px; }
+.weak-unit .note { margin: 8px 0 4px; font-size: 16px; }
+.weak-unit details { margin-top: 4px; }
+.weak-unit summary { cursor: pointer; font-weight: 600; }
+.weak-unit .test-actions { margin-top: 10px; }
+.weak-good { margin-top: 16px; }
+.mock-intro { padding: 4px 0; }
+.mock-intro h2 { margin: 18px 0 6px; font: 700 34px/1.1 var(--head); }
+.mock-intro ul { margin: 0 0 12px; padding-left: 22px; }
+.t-timer { font-weight: 700; font-variant-numeric: tabular-nums; }
+.t-timer.is-low { color: var(--accent); }
 
 /* Patch notes */
 .patch-intro { margin: 14px 0 0; }
