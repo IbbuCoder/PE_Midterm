@@ -86,14 +86,17 @@ try {
     <a class="brand" href="#home"><svg class="brand-logo" aria-hidden="true"><use href="#i-logo"></use></svg>PE Midterm</a>
     <nav id="nav" class="nav" aria-label="Main">
       <a href="#home">Home</a>
+      <span class="nav-sep" aria-hidden="true"></span>
       <a href="#u1">01 Intro</a>
       <a href="#u2">02 Cardio</a>
       <a href="#u3">03 Muscular</a>
       <a href="#u4">04 Muscles</a>
       <a href="#u5">05 Body comp</a>
+      <span class="nav-sep" aria-hidden="true"></span>
       <a href="#flashcards">Flashcards</a>
       <a href="#test">Practice test</a>
       <a href="#weak">Weak spots</a>
+      <span class="nav-sep" aria-hidden="true"></span>
       <a href="#settings">Settings</a>
       <a href="#updates">What's new</a>
     </nav>
@@ -890,7 +893,6 @@ try {
     <header class="unit-head"><h1 tabindex="-1">More</h1></header>
     <nav class="more-list" aria-label="More pages">
       <a href="#weak"><b>Weak spots</b><span>What to study next, based on your misses</span></a>
-      <a href="#test" data-mock><b>Mock midterm</b><span>All 47 questions in 45 minutes, like the real thing</span></a>
       <a href="#settings"><b>Settings</b><span>Theme, colors, text size and more</span></a>
       <a href="#updates"><b>What's new</b><span>Patch notes</span></a>
     </nav>
@@ -915,9 +917,9 @@ try {
       <header class="patch-head"><h2>Version 1.2</h2><time datetime="2026-11-02">Nov 2, 2026</time><span class="patch-tag">Latest</span></header>
       <h3>New</h3>
       <ul>
-        <li>Mock midterm: all 47 questions in 45 minutes, with answers and a unit-by-unit score at the end. Find it on the Practice test page.</li>
         <li>Weak spots page: shows your weakest units, the questions you missed and the flashcards you're still learning, with buttons to practice them.</li>
-        <li>On phones, the Settings tab is now More. It holds Weak spots, Mock midterm, Settings and What's new.</li>
+        <li>On phones, the Settings tab is now More. It holds Weak spots, Settings and What's new.</li>
+        <li>Cleaner layout: a top menu split into groups, a tidier Practice test page and a more compact welcome screen.</li>
         <li>You can type your name on the welcome screen.</li>
       </ul>
     </article>
@@ -984,7 +986,7 @@ try {
 
 <dialog class="welcome" id="welcome" aria-labelledby="welcome-title">
   <div class="welcome-in" tabindex="-1" autofocus>
-    <p class="welcome-kicker">Welcome to PE Midterm</p>
+    <p class="kicker">Welcome to PE Midterm</p>
     <h2 id="welcome-title">Make it yours</h2>
     <p class="welcome-lead">This site is fully customizable. Set it up the way you like. You can change all of this later in Settings.</p>
 
