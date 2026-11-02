@@ -170,6 +170,17 @@
   // Bump this when a new entry goes at the top of the What's new page.
   var LATEST = { version: '1.1', note: 'Version 1.1: a welcome screen and this patch notes page.' };
 
+  // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
+  function openDialog(box) {
+    if (box.open) return;
+    if (typeof box.showModal === 'function') box.showModal();
+    else { box.setAttribute('open', ''); box.classList.add('no-modal'); }
+  }
+  function closeDialog(box) {
+    if (typeof box.close === 'function') box.close();
+    else { box.removeAttribute('open'); box.dispatchEvent(new Event('close')); }
+  }
+
   function buildWelcome() {
     var box = $('#welcome');
     function finish() {
@@ -177,17 +188,17 @@
       save();
     }
     box.addEventListener('close', finish);
-    box.addEventListener('click', function (e) { if (e.target === box) box.close(); });
-    $('#welcome-start').addEventListener('click', function () { box.close(); });
+    box.addEventListener('click', function (e) { if (e.target === box) closeDialog(box); });
+    $('#welcome-start').addEventListener('click', function () { closeDialog(box); });
     $('#welcome-settings').addEventListener('click', function () {
-      box.close();
+      closeDialog(box);
       location.hash = 'settings';
     });
-    $('#welcome-again').addEventListener('click', function () { box.showModal(); });
+    $('#welcome-again').addEventListener('click', function () { openDialog(box); });
     if (firstVisit) {
       // A brand-new visitor has nothing to catch up on in the patch notes.
       saved.seenNotes = LATEST.version;
-      setTimeout(function () { if (!saved.seenWelcome && !box.open) box.showModal(); }, 350);
+      setTimeout(function () { if (!saved.seenWelcome) openDialog(box); }, 350);
     } else if (!saved.seenWelcome) {
       // Returning visitors already know the site, so they skip the welcome screen.
       saved.seenWelcome = true;
@@ -365,7 +376,7 @@
     page('Game Day', 'Page', 'mock exam final', quick('game'));
     page('Settings', 'Page', 'options customize preferences', function () { location.hash = 'settings'; });
     page('What\'s new', 'Page', 'patch notes updates changelog changes version new features', function () { location.hash = 'updates'; });
-    page('Welcome screen', 'Setting', 'welcome tour setup customize intro first', function () { $('#welcome').showModal(); });
+    page('Welcome screen', 'Setting', 'welcome tour setup customize intro first', function () { openDialog($('#welcome')); });
     page('Muscle map', 'Tool', 'body figure diagram chart numbers front back', function () { goToMap('explore'); }, 25);
     page('Machine matcher', 'Tool', 'machines gym exercises', function () { goToMap('machines'); }, 25);
     page('Muscle quiz', 'Tool', 'quiz mode numbers choices', function () { goToMap('quiz'); }, 15);
