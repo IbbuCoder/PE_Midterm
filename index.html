@@ -33,7 +33,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="./css/style.css?v=1.1">
+<link rel="stylesheet" href="./css/style.css?v=1.2">
 </head>
 <body>
 
@@ -48,6 +48,7 @@ try {
   <symbol id="t-cards" viewBox="0 0 24 24"><path d="M3 7h14v13H3zM7 7V4h14v13h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
   <symbol id="t-test" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM9 12l2.500 2.500L15.500 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
   <symbol id="t-settings" viewBox="0 0 24 24"><path d="M3 7h10M17 7h4M3 17h4M11 17h10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 4h4v6h-4zM7 14h4v6H7z" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="t-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.500" cy="10.500" r="6.500" fill="none" stroke="currentColor" stroke-width="2.400"/><path d="M15.500 15.500L21 21" fill="none" stroke="currentColor" stroke-width="2.400"/></symbol>
   <symbol id="i-hydro" viewBox="0 0 48 48">
     <path d="M6 8v34h36V8" fill="none" stroke="currentColor" stroke-width="2.5"/>
@@ -92,6 +93,7 @@ try {
       <a href="#u5">05 Body comp</a>
       <a href="#flashcards">Flashcards</a>
       <a href="#test">Practice test</a>
+      <a href="#weak">Weak spots</a>
       <a href="#settings">Settings</a>
       <a href="#updates">What's new</a>
     </nav>
@@ -882,14 +884,46 @@ try {
   </div>
 </section>
 
+<!-- MORE (phone tab) -->
+<section class="view" id="view-more" data-title="More">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">More</h1></header>
+    <nav class="more-list" aria-label="More pages">
+      <a href="#weak"><b>Weak spots</b><span>What to study next, based on your misses</span></a>
+      <a href="#test" data-mock><b>Mock midterm</b><span>All 47 questions in 45 minutes, like the real thing</span></a>
+      <a href="#settings"><b>Settings</b><span>Theme, colors, text size and more</span></a>
+      <a href="#updates"><b>What's new</b><span>Patch notes</span></a>
+    </nav>
+  </div>
+</section>
+
+<!-- WEAK SPOTS -->
+<section class="view" id="view-weak" data-title="Weak spots">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">Weak spots</h1></header>
+    <div id="weak-root"></div>
+  </div>
+</section>
+
 <!-- PATCH NOTES -->
 <section class="view" id="view-updates" data-title="What's new">
   <div class="wrap narrow">
     <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
     <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
 
+    <article class="patch" id="patch-1-2">
+      <header class="patch-head"><h2>Version 1.2</h2><time datetime="2026-11-02">Nov 2, 2026</time><span class="patch-tag">Latest</span></header>
+      <h3>New</h3>
+      <ul>
+        <li>Mock midterm: all 47 questions in 45 minutes, with answers and a unit-by-unit score at the end. Find it on the Practice test page.</li>
+        <li>Weak spots page: shows your weakest units, the questions you missed and the flashcards you're still learning, with buttons to practice them.</li>
+        <li>On phones, the Settings tab is now More. It holds Weak spots, Mock midterm, Settings and What's new.</li>
+        <li>You can type your name on the welcome screen.</li>
+      </ul>
+    </article>
+
     <article class="patch" id="patch-1-1">
-      <header class="patch-head"><h2>Version 1.1</h2><time datetime="2026-11-02">Nov 2, 2026</time><span class="patch-tag">Latest</span></header>
+      <header class="patch-head"><h2>Version 1.1</h2><time datetime="2026-11-02">Nov 2, 2026</time></header>
       <h3>New</h3>
       <ul>
         <li>Welcome screen for first-time visitors. Pick your theme, team color, text size and simple words before you start.</li>
@@ -937,7 +971,7 @@ try {
   <a href="#units" data-tab="units"><svg aria-hidden="true"><use href="#t-units"></use></svg>Units</a>
   <a href="#flashcards" data-tab="flashcards"><svg aria-hidden="true"><use href="#t-cards"></use></svg>Cards</a>
   <a href="#test" data-tab="test"><svg aria-hidden="true"><use href="#t-test"></use></svg>Test</a>
-  <a href="#settings" data-tab="settings"><svg aria-hidden="true"><use href="#t-settings"></use></svg>Settings</a>
+  <a href="#more" data-tab="more"><svg aria-hidden="true"><use href="#t-more"></use></svg>More</a>
 </nav>
 
 <dialog class="search" id="search" aria-label="Search">
@@ -949,11 +983,15 @@ try {
 </dialog>
 
 <dialog class="welcome" id="welcome" aria-labelledby="welcome-title">
-  <div class="welcome-in">
+  <div class="welcome-in" tabindex="-1" autofocus>
     <p class="welcome-kicker">Welcome to PE Midterm</p>
     <h2 id="welcome-title">Make it yours</h2>
     <p class="welcome-lead">This site is fully customizable. Set it up the way you like. You can change all of this later in Settings.</p>
 
+    <div class="welcome-row">
+      <label class="set-label" for="welcome-name">Your name</label>
+      <input class="text-input welcome-name" id="welcome-name" type="text" maxlength="24" autocomplete="off" placeholder="Shows on Home (optional)">
+    </div>
     <div class="welcome-row">
       <span class="set-label">Theme</span>
       <div class="seg" data-set="theme">
@@ -987,7 +1025,7 @@ try {
       </div>
     </div>
 
-    <p class="note welcome-more">More in Settings: your name, midterm countdown, school color, heading font, spacing, animations, flashcard order and more.</p>
+    <p class="note welcome-more">More in Settings: midterm countdown, school color, heading font, spacing, animations, flashcard order and more.</p>
     <div class="welcome-actions">
       <button type="button" class="btn ghost" id="welcome-settings">All settings</button>
       <button type="button" class="btn solid" id="welcome-start">Start studying</button>
@@ -997,9 +1035,9 @@ try {
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./js/data.js?v=1.1"></script>
-<script src="./js/simple.js?v=1.1"></script>
-<script src="./js/body.js?v=1.1"></script>
-<script src="./js/main.js?v=1.1"></script>
+<script src="./js/data.js?v=1.2"></script>
+<script src="./js/simple.js?v=1.2"></script>
+<script src="./js/body.js?v=1.2"></script>
+<script src="./js/main.js?v=1.2"></script>
 </body>
 </html>
