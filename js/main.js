@@ -28,6 +28,8 @@
   } catch (e) {
     saved = {};
   }
+  // Nothing saved yet means this is someone's first visit on this device.
+  var firstVisit = Object.keys(saved).length === 0;
   function save() {
     try {
       localStorage.setItem(KEY, JSON.stringify(saved));
@@ -137,10 +139,12 @@
   }
 
   function buildSettings() {
-    $('#view-settings').addEventListener('click', function (e) {
+    function pickSetting(e) {
       var b = e.target.closest('[data-val]');
       if (b) changeSetting(b.parentNode.dataset.set, b.dataset.val);
-    });
+    }
+    $('#view-settings').addEventListener('click', pickSetting);
+    $('#welcome').addEventListener('click', pickSetting);
     $('#dumb-btn').addEventListener('click', function () {
       changeSetting('simple', settings.simple === 'on' ? 'off' : 'on');
     });
@@ -159,6 +163,42 @@
     $('#backup-save').addEventListener('click', saveBackup);
     $('#backup-load').addEventListener('change', loadBackup);
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySettings);
+  }
+
+  /* ---------- Welcome screen and patch notes ---------- */
+
+  // Bump this when a new entry goes at the top of the What's new page.
+  var LATEST = { version: '1.1', note: 'Version 1.1: a welcome screen and this patch notes page.' };
+
+  function buildWelcome() {
+    var box = $('#welcome');
+    function finish() {
+      saved.seenWelcome = true;
+      save();
+    }
+    box.addEventListener('close', finish);
+    box.addEventListener('click', function (e) { if (e.target === box) box.close(); });
+    $('#welcome-start').addEventListener('click', function () { box.close(); });
+    $('#welcome-settings').addEventListener('click', function () {
+      box.close();
+      location.hash = 'settings';
+    });
+    $('#welcome-again').addEventListener('click', function () { box.showModal(); });
+    if (firstVisit) {
+      // A brand-new visitor has nothing to catch up on in the patch notes.
+      saved.seenNotes = LATEST.version;
+      setTimeout(function () { if (!saved.seenWelcome && !box.open) box.showModal(); }, 350);
+    } else if (!saved.seenWelcome) {
+      // Returning visitors already know the site, so they skip the welcome screen.
+      saved.seenWelcome = true;
+      save();
+    }
+  }
+
+  function renderNews() {
+    var link = $('.whats-new');
+    $('#home-news').textContent = LATEST.note;
+    link.classList.toggle('is-unread', saved.seenNotes !== LATEST.version);
   }
 
   function toast(message) {
@@ -324,6 +364,8 @@
     page('Daily 10', 'Page', 'daily streak quick', quick('daily'));
     page('Game Day', 'Page', 'mock exam final', quick('game'));
     page('Settings', 'Page', 'options customize preferences', function () { location.hash = 'settings'; });
+    page('What\'s new', 'Page', 'patch notes updates changelog changes version new features', function () { location.hash = 'updates'; });
+    page('Welcome screen', 'Setting', 'welcome tour setup customize intro first', function () { $('#welcome').showModal(); });
     page('Muscle map', 'Tool', 'body figure diagram chart numbers front back', function () { goToMap('explore'); }, 25);
     page('Machine matcher', 'Tool', 'machines gym exercises', function () { goToMap('machines'); }, 25);
     page('Muscle quiz', 'Tool', 'quiz mode numbers choices', function () { goToMap('quiz'); }, 15);
@@ -703,7 +745,11 @@
     save();
     document.title = view.dataset.title + ' | PE Midterm';
     closeMenu();
-    if (id === 'home') renderHome();
+    if (id === 'updates' && saved.seenNotes !== LATEST.version) {
+      saved.seenNotes = LATEST.version;
+      save();
+    }
+    if (id === 'home') { renderHome(); renderNews(); }
     if (id === 'test') renderTest();
     if (id === 'units') renderUnits();
     window.scrollTo(0, 0);
@@ -2089,6 +2135,7 @@
     buildSimpleNotes();
     buildSettings();
     applySettings();
+    buildWelcome();
     buildInstall();
     buildUnitHelpers();
     buildMap();
