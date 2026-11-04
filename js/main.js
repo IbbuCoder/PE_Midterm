@@ -40,7 +40,7 @@
 
   var DEFAULTS = {
     theme: 'light', accent: 'red', color: '#c4122f', font: 'barlow', size: 'normal', density: 'comfy', motion: 'on',
-    simple: 'off', cardFirst: 'term', exam: '', name: '', gameLength: '30', startPage: 'home', board: 'show'
+    simple: 'off', cardFirst: 'term', exam: '', name: '', gameLength: '30', startPage: 'home', board: 'show', goal: '20'
   };
   var settings = {};
 
@@ -171,7 +171,7 @@
   /* ---------- Welcome screen and patch notes ---------- */
 
   // Bump this when a new entry goes at the top of the What's new page.
-  var LATEST = { version: '1.2', note: 'Version 1.2: a Weak spots page and a cleaner layout.' };
+  var LATEST = { version: '1.3', note: 'Version 1.3: type-it flashcards, read aloud, a review sheet and a daily goal.' };
 
   // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
   function openDialog(box) {
@@ -379,6 +379,12 @@
     page('Daily 10', 'Page', 'daily streak quick', quick('daily'));
     page('Game Day', 'Page', 'mock exam final', quick('game'));
     page('Settings', 'Page', 'options customize preferences', function () { location.hash = 'settings'; });
+    page('Review sheet', 'Page', 'print printable cheat sheet review sheet pdf summary all cards', function () { location.hash = 'sheet'; });
+    page('Type it flashcards', 'Tool', 'type typing spell spelling answer write', function () {
+      setFlashMode('type');
+      location.hash = 'flashcards';
+    }, 15);
+    page('Daily goal', 'Setting', 'goal daily target per day how many', function () { location.hash = 'settings'; });
     page('Weak spots', 'Page', 'weak weakest missed misses review what to study next struggling', function () { location.hash = 'weak'; });
     page('What\'s new', 'Page', 'patch notes updates changelog changes version new features', function () { location.hash = 'updates'; });
     page('Welcome screen', 'Setting', 'welcome tour setup customize intro first', function () { openDialog($('#welcome')); });
@@ -753,7 +759,7 @@
       else a.removeAttribute('aria-current');
     });
     var tabId = /^u\d$/.test(id) ? 'units' : id;
-    if (['settings', 'updates', 'weak', 'more'].indexOf(id) > -1) tabId = 'more';
+    if (['settings', 'updates', 'weak', 'more', 'sheet'].indexOf(id) > -1) tabId = 'more';
     $$('.tabbar a').forEach(function (a) {
       if (a.dataset.tab === tabId) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
@@ -770,6 +776,8 @@
     if (id === 'test') renderTest();
     if (id === 'units') renderUnits();
     if (id === 'weak') renderWeak();
+    if (id === 'sheet') renderSheet();
+    stopSpeaking();
     window.scrollTo(0, 0);
     if (!first) {
       var h = $('h1', view);
@@ -899,7 +907,7 @@
       '<div class="sb-total"><span class="sb-label">Ready</span><div class="sb-tiles" role="img" aria-label="' + total + ' percent ready">' +
       String(total).split('').map(function (d) { return '<span class="sb-tile">' + d + '</span>'; }).join('') +
       '<span class="sb-tile unit">%</span></div><p class="sb-note">Your test scores, flashcards and map quiz added up.</p>' + examLine() +
-      (saved.streak && saved.streak.count ? '<p class="sb-extra">Daily 10 streak: ' + saved.streak.count + '</p>' : '') + '</div>' +
+      (saved.streak && saved.streak.count ? '<p class="sb-extra">Daily 10 streak: ' + saved.streak.count + '</p>' : '') + goalLine() + '</div>' +
       '<div class="sb-rows">' + scores.map(function (s) {
         return '<a class="sb-row" href="#' + s.unit.id + '"><span class="sb-num">' + s.unit.num + '</span><span class="sb-name">' + esc(s.unit.title) + '</span>' +
           '<span class="sb-pct">' + s.value + '%</span><span class="sb-bar"><i data-width="' + s.value + '"></i></span></a>';
@@ -917,6 +925,95 @@
     $('#home-daily').textContent = 'A quick mix of your misses and weakest unit';
     $('#home-game').textContent = gameLength() + ' mixed questions, answers at the end. Last: ' + scoreText(last.game);
     renderStudy();
+  }
+
+  /* ---------- Daily goal ---------- */
+
+  function goalTarget() {
+    return settings.goal === 'off' ? 0 : Number(settings.goal) || 0;
+  }
+
+  function todayCount() {
+    var t = saved.today;
+    return t && t.day === thisDay() ? t.n : 0;
+  }
+
+  // Every flashcard mark and test answer counts once.
+  function bumpGoal() {
+    var n = todayCount() + 1;
+    saved.today = { day: thisDay(), n: n };
+    if (goalTarget() && n === goalTarget()) toast('Daily goal done: ' + n + ' answered today');
+  }
+
+  function goalLine() {
+    var goal = goalTarget();
+    if (!goal) return '';
+    var n = todayCount();
+    return '<p class="sb-extra sb-goal">' + (n >= goal ? 'Daily goal done: ' : 'Daily goal: ') + Math.min(n, goal) + ' / ' + goal + '</p>';
+  }
+
+  /* ---------- Read aloud ---------- */
+
+  var speech = { btn: null };
+
+  function canSpeak() {
+    return 'speechSynthesis' in window && typeof window.SpeechSynthesisUtterance === 'function';
+  }
+
+  function stopSpeaking() {
+    if (!canSpeak()) return;
+    window.speechSynthesis.cancel();
+    if (speech.btn) {
+      speech.btn.setAttribute('aria-pressed', 'false');
+      speech.btn.classList.remove('is-on');
+    }
+    speech.btn = null;
+  }
+
+  // Tapping the same button again stops it.
+  function speak(text, btn) {
+    if (!canSpeak()) return;
+    var same = speech.btn === btn;
+    stopSpeaking();
+    if (same) return;
+    var say = new window.SpeechSynthesisUtterance(text.replace(/\s+/g, ' ').trim());
+    say.lang = 'en-US';
+    say.rate = 0.95;
+    say.onend = say.onerror = function () { if (speech.btn === btn) stopSpeaking(); };
+    speech.btn = btn;
+    btn.setAttribute('aria-pressed', 'true');
+    btn.classList.add('is-on');
+    window.speechSynthesis.speak(say);
+  }
+
+  function buildSpeech() {
+    if (!canSpeak()) {
+      document.documentElement.classList.add('no-speech');
+      return;
+    }
+    $$('.view.unit .block > h2').forEach(function (h) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'speak-icon';
+      btn.setAttribute('aria-pressed', 'false');
+      btn.setAttribute('aria-label', 'Read ' + h.textContent + ' aloud');
+      btn.innerHTML = '<svg aria-hidden="true"><use href="#i-speak"></use></svg>';
+      btn.addEventListener('click', function () { speak(h.parentNode.innerText, btn); });
+      h.appendChild(btn);
+    });
+  }
+
+  /* ---------- Review sheet ---------- */
+
+  function renderSheet() {
+    var root = $('#sheet-root');
+    if (root.children.length) return;
+    root.innerHTML = PE.units.map(function (u) {
+      var cards = PE.flashcards.filter(function (c) { return 'u' + c.u === u.id; });
+      return '<section class="sheet-unit"><h2><span>' + u.num + '</span> ' + esc(u.title) + '</h2><dl>' +
+        cards.map(function (c) { return '<div><dt>' + esc(c.front) + '</dt><dd>' + esc(c.back) + '</dd></div>'; }).join('') +
+        '</dl></section>';
+    }).join('');
   }
 
   /* ---------- Weak spots ---------- */
@@ -1593,7 +1690,7 @@
 
   /* ---------- Flashcards ---------- */
 
-  var flash = { scope: 'all', pile: 'all', deck: [], pos: 0 };
+  var flash = { scope: 'all', pile: 'all', deck: [], pos: 0, mode: 'flip', answered: null };
 
   function unitLabel(n) {
     var u = PE.units[n - 1];
@@ -1613,7 +1710,9 @@
   }
 
   function setDeck(shuffled) {
-    var deck = scopeCards().filter(function (c) { return flash.pile === 'all' || !isKnown(c); });
+    var deck = scopeCards().filter(function (c) {
+      return (flash.pile === 'all' || !isKnown(c)) && (flash.mode !== 'type' || typeable(c));
+    });
     flash.deck = shuffled ? shuffle(deck) : deck;
     flash.pos = 0;
     renderCard();
@@ -1632,6 +1731,11 @@
       b.classList.toggle('is-on', on);
       b.setAttribute('aria-pressed', String(on));
       b.textContent = b.dataset.pile === 'all' ? 'All cards (' + cards.length + ')' : 'Still learning (' + (cards.length - known) + ')';
+    });
+    $$('#flash-mode button').forEach(function (b) {
+      var on = b.dataset.mode === flash.mode;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
     });
     $('#flash-known').textContent = known + ' of ' + cards.length + ' Got it';
     $('#flash-bar').style.width = pct(known, cards.length) + '%';
@@ -1653,9 +1757,109 @@
     $('#card-tag-f').textContent = hasCard ? unitLabel(c.u) : 'Every card here is marked Got it';
     $('#card-tag-b').textContent = hasCard ? unitLabel(c.u) : '';
     $('#card-count').textContent = hasCard ? (flash.pos + 1) + ' of ' + flash.deck.length : '0 cards';
-    ['#card-learning', '#card-known', '#card-prev', '#card-next'].forEach(function (id) { $(id).disabled = !hasCard; });
+    ['#card-learning', '#card-known', '#card-prev', '#card-next', '#card-speak'].forEach(function (id) { $(id).disabled = !hasCard; });
     $('#card-known').classList.toggle('is-on', hasCard && isKnown(c));
+    if (speech.btn === $('#card-speak')) stopSpeaking();
+
+    var typing = flash.mode === 'type';
+    card.classList.toggle('typing', typing);
+    $('#flash-type').hidden = !typing || !hasCard;
+    $('.flash-mark').hidden = typing;
+    if (typing) {
+      flash.answered = null;
+      card.classList.remove('swap');
+      $('#card-front').textContent = hasCard ? typeable(c).prompt : (flash.pile === 'learning' ? 'Pile cleared' : 'No cards to type here');
+      $('#card-simple-f').textContent = '';
+      $('#card-tag-f').textContent = hasCard ? unitLabel(c.u) + ' · Type the answer' : 'Try another unit, or switch back to Flip';
+      $('#type-input').value = '';
+      $('#type-input').disabled = false;
+      $('#type-check').textContent = 'Check';
+      $('#type-result').hidden = true;
+    }
     paintFlash();
+  }
+
+  /* ---------- Type it ---------- */
+
+  // A card can be typed when one side is short. You see the long side and type the short one.
+  function typeable(c) {
+    if (c.typed !== undefined) return c.typed;
+    var words = function (s) { return s.trim().split(/\s+/).length; };
+    var shortBack = c.back.indexOf('\n') === -1 && c.back.length <= 40 && words(c.back) <= 5;
+    var termFront = !/[?…:_\n]/.test(c.front) && words(c.front) <= 4 &&
+      !/^(true or false|why|when|can|what|how|two|benefits)\b/i.test(c.front) && !/example|problem/i.test(c.front);
+    c.typed = shortBack ? { prompt: c.front, answer: c.back } : termFront ? { prompt: c.back, answer: c.front } : null;
+    return c.typed;
+  }
+
+  function cleanAnswer(s) {
+    return s.toLowerCase().replace(/[−–—]/g, '-').replace(/&/g, ' and ').replace(/[^a-z0-9%\- ]+/g, ' ')
+      .replace(/\s*-\s*/g, '-').replace(/\s+/g, ' ').trim();
+  }
+
+  // "One Rep Max (1RM)" accepts either name, and "DXA/DEXA" accepts either spelling.
+  function answerForms(ans) {
+    var forms = [ans];
+    var m = ans.match(/^(.*?)\s*\((.*)\)\s*$/);
+    if (m) forms.push(m[1], m[2]);
+    forms.slice().forEach(function (f) { if (f.indexOf('/') > -1) forms = forms.concat(f.split('/')); });
+    return forms.map(cleanAnswer).filter(Boolean);
+  }
+
+  // Lists can come in any order, and small spelling slips still count.
+  function matchAnswer(typed, ans) {
+    var t = cleanAnswer(typed);
+    if (!t) return false;
+    var sorted = function (s) { return s.replace(/\band\b/g, ' ').split(' ').filter(Boolean).sort().join(' '); };
+    return answerForms(ans).some(function (f) {
+      var slack = f.length <= 4 ? 0 : f.length <= 10 ? 1 : 2;
+      return t === f || editDistance(t, f) <= slack || sorted(t) === sorted(f);
+    });
+  }
+
+  function checkTyped() {
+    var c = flash.deck[flash.pos];
+    if (!c) return;
+    if (flash.answered !== null) {
+      nextAfter(flash.answered);
+      return;
+    }
+    var input = $('#type-input');
+    if (!input.value.trim()) { input.focus(); return; }
+    var ans = typeable(c).answer;
+    var right = matchAnswer(input.value, ans);
+    flash.answered = right;
+    setKnown(c, right);
+    bumpGoal();
+    save();
+    var box = $('#type-result');
+    box.hidden = false;
+    box.className = 'type-result ' + (right ? 'right' : 'wrong');
+    box.innerHTML = right
+      ? '<b>Correct</b>' + (cleanAnswer(input.value) !== cleanAnswer(ans) ? ' Spelled: ' + esc(ans) : '')
+      : '<b>Not quite.</b> Answer: ' + esc(ans);
+    input.disabled = true;
+    $('#type-check').textContent = 'Next';
+    $('#type-check').focus();
+    paintFlash();
+  }
+
+  function nextAfter(known) {
+    if (flash.pile === 'learning' && known) {
+      flash.deck.splice(flash.pos, 1);
+      if (flash.pos >= flash.deck.length) flash.pos = 0;
+      renderCard();
+    } else {
+      moveCard(1);
+    }
+    if (flash.mode === 'type' && !$('#flash-type').hidden) $('#type-input').focus({ preventScroll: true });
+  }
+
+  function setFlashMode(mode) {
+    flash.mode = mode;
+    saved.flashMode = mode;
+    save();
+    setDeck(false);
   }
 
   function moveCard(step) {
@@ -1676,14 +1880,9 @@
     var c = flash.deck[flash.pos];
     if (!c) return;
     setKnown(c, known);
+    bumpGoal();
     save();
-    if (flash.pile === 'learning' && known) {
-      flash.deck.splice(flash.pos, 1);
-      if (flash.pos >= flash.deck.length) flash.pos = 0;
-      renderCard();
-    } else {
-      moveCard(1);
-    }
+    nextAfter(known);
   }
 
   function buildFlashcards() {
@@ -1712,7 +1911,25 @@
     $('#card-known').addEventListener('click', function () { markCard(true); });
     $('#card-learning').addEventListener('click', function () { markCard(false); });
 
-    $('#card').addEventListener('click', function () { $('#card').classList.toggle('is-flipped'); });
+    $('#card').addEventListener('click', function () {
+      if (flash.mode === 'type') $('#type-input').focus();
+      else $('#card').classList.toggle('is-flipped');
+    });
+    $('#flash-mode').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (b && b.dataset.mode !== flash.mode) setFlashMode(b.dataset.mode);
+    });
+    $('#flash-type').addEventListener('submit', function (e) {
+      e.preventDefault();
+      checkTyped();
+    });
+    $('#card-speak').addEventListener('click', function () {
+      var c = flash.deck[flash.pos];
+      if (!c) return;
+      var flipped = $('#card').classList.contains('is-flipped');
+      var text = flash.mode === 'type' ? typeable(c).prompt : $(flipped ? '#card-back' : '#card-front').textContent;
+      speak(text, this);
+    });
     $('#card-prev').addEventListener('click', function () { moveCard(-1); });
     $('#card-next').addEventListener('click', function () { moveCard(1); });
     $('#card-shuffle').addEventListener('click', function () { setDeck(true); });
@@ -1720,11 +1937,13 @@
 
     document.addEventListener('keydown', function (e) {
       if (!$('#view-flashcards').classList.contains('is-active')) return;
+      if (e.target.closest('input, textarea')) return;
       if (e.key === 'ArrowRight') moveCard(1);
       if (e.key === 'ArrowLeft') moveCard(-1);
     });
 
     if (saved.flashScope && scopes.some(function (s) { return s.id === saved.flashScope; })) flash.scope = saved.flashScope;
+    if (saved.flashMode === 'type') flash.mode = 'type';
     setDeck(false);
   }
 
@@ -2210,6 +2429,7 @@
         else run.missed.push(run.ids[run.pos]);
         setMissed(q, run.picked !== q.a);
         reviewRecord(itemKey(run.ids[run.pos]), run.picked === q.a);
+        bumpGoal();
         keepRun();
         if (run.exam) nextQuestion(run);
         else renderTest();
@@ -2222,6 +2442,7 @@
         if (got) run.right++;
         else run.missed.push(run.ids[run.pos]);
         setKnown(cardOf(run.ids[run.pos]), got);
+        bumpGoal();
         nextQuestion(run);
       } else if (t.closest('[data-next]')) {
         nextQuestion(run);
@@ -2243,6 +2464,7 @@
   function start() {
     loadSettings();
     buildSimpleNotes();
+    buildSpeech();
     buildSettings();
     applySettings();
     buildWelcome();
