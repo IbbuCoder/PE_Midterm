@@ -385,6 +385,9 @@
       location.hash = 'flashcards';
     }, 15);
     page('Daily goal', 'Setting', 'goal daily target per day how many', function () { location.hash = 'settings'; });
+    page('Send feedback', 'Page', 'feedback idea ideas suggestion suggest recommend question bug report form contact', function () {
+      window.open('https://forms.gle/6LFouHe3cwiY1r5t7', '_blank', 'noopener');
+    });
     page('Weak spots', 'Page', 'weak weakest missed misses review what to study next struggling', function () { location.hash = 'weak'; });
     page('What\'s new', 'Page', 'patch notes updates changelog changes version new features', function () { location.hash = 'updates'; });
     page('Welcome screen', 'Setting', 'welcome tour setup customize intro first', function () { openDialog($('#welcome')); });
