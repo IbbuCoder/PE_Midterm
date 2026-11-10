@@ -33,7 +33,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="./css/style.css?v=1.3.1">
+<link rel="stylesheet" href="./css/style.css?v=2.0">
 </head>
 <body>
 
@@ -117,6 +117,7 @@ try {
     <p class="greeting" id="greeting" hidden></p>
     <h1 class="home-title" tabindex="-1">PE Midterm <span>Personal Fitness</span></h1>
     <div class="board" id="board"></div>
+    <section class="plan" id="home-plan" aria-label="Study plan" hidden></section>
     <button type="button" class="ask-bar" id="home-ask"><svg aria-hidden="true"><use href="#i-search"></use></svg><span>Ask a question or search the notes</span></button>
     <div class="home-links">
       <button type="button" class="big-link solid study-link" id="home-study-btn" data-quick="study"><strong id="home-study"></strong><span id="home-study-note"></span></button>
@@ -124,6 +125,8 @@ try {
       <a class="big-link" href="#test"><strong>Practice test</strong><span id="home-test"></span></a>
       <button type="button" class="big-link" data-quick="daily"><strong>Daily 10</strong><span id="home-daily"></span></button>
       <button type="button" class="big-link" data-quick="game"><strong>Game Day</strong><span id="home-game"></span></button>
+      <a class="big-link" href="#drills"><strong>Formula drills</strong><span>Heart rate, 1 Rep Max and body fat math with new numbers each time</span></a>
+      <a class="big-link" href="#match"><strong>Matching game</strong><span id="home-match"></span></a>
     </div>
     <a class="whats-new" href="#updates"><b>New</b> <span id="home-news"></span></a>
     <button type="button" class="link-btn clear-all" id="clear-all">Clear all my progress</button>
@@ -917,6 +920,10 @@ try {
     <header class="unit-head"><h1 tabindex="-1">More</h1></header>
     <nav class="more-list" aria-label="More pages">
       <a href="#weak"><b>Weak spots</b><span>What to study next, based on your misses</span></a>
+      <a href="#last"><b>Last look</b><span>Formulas, the muscle chart and your misses on one page</span></a>
+      <a href="#drills"><b>Formula drills</b><span>Practice the heart rate, 1 Rep Max and body fat math</span></a>
+      <a href="#match"><b>Matching game</b><span>Match terms to their meanings on the clock</span></a>
+      <a href="#test" data-mock><b>Mock midterm</b><span>Every question, 45 minutes, answers at the end</span></a>
       <a href="#sheet"><b>Review sheet</b><span>Every flashcard on a few printable pages</span></a>
       <a href="#settings"><b>Settings</b><span>Theme, colors, text size and more</span></a>
       <a href="#updates"><b>What's new</b><span>Patch notes</span></a>
@@ -942,14 +949,59 @@ try {
   </div>
 </section>
 
+<!-- LAST LOOK -->
+<section class="view" id="view-last" data-title="Last look">
+  <div class="wrap narrow">
+    <header class="unit-head sheet-head"><h1 tabindex="-1">Last look</h1><button type="button" class="btn solid" data-print>Print</button></header>
+    <p class="note sheet-intro">The short version for the night before and the morning of the midterm.</p>
+    <div id="last-root"></div>
+  </div>
+</section>
+
+<!-- FORMULA DRILLS -->
+<section class="view" id="view-drills" data-title="Formula drills">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">Formula drills</h1></header>
+    <p class="note">New numbers every time. Type the answer, then check it.</p>
+    <div id="drill-root"></div>
+  </div>
+</section>
+
+<!-- MATCHING GAME -->
+<section class="view" id="view-match" data-title="Matching game">
+  <div class="wrap">
+    <header class="unit-head"><h1 tabindex="-1">Matching game</h1></header>
+    <div id="match-root"></div>
+  </div>
+</section>
+
 <!-- PATCH NOTES -->
 <section class="view" id="view-updates" data-title="What's new">
   <div class="wrap narrow">
     <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
     <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
 
+    <article class="patch" id="patch-2-0">
+      <header class="patch-head"><h2>Version 2.0</h2><time datetime="2026-11-10">Nov 10, 2026</time><span class="patch-tag">Final</span></header>
+      <p>The final version, ready for the midterm on Thursday, Nov 12. Everything you saved before is still here.</p>
+      <h3>New</h3>
+      <ul>
+        <li><strong>Study plan:</strong> Home now lists what to do today, picked from your misses, your weakest unit and what is due for review.</li>
+        <li><strong>Test-day mode:</strong> on Thursday, Home switches to a last look with the key formulas, your misses and the muscle chart. The Last look page is under More any day.</li>
+        <li><strong>Formula drills:</strong> max heart rate, 1 Rep Max and body fat problems with new numbers each time.</li>
+        <li><strong>Mock midterm:</strong> it's back. Every question, 45 minutes on the clock, answers at the end.</li>
+        <li><strong>Readiness check:</strong> the plan and Weak spots show how much you got right in the last 7 days.</li>
+        <li><strong>Matching game:</strong> match six terms to their meanings and beat your best time.</li>
+        <li><strong>Share a score:</strong> send a test score or matching time to a friend.</li>
+      </ul>
+      <h3>Changed</h3>
+      <ul>
+        <li>The midterm date is built in, so the countdown shows for everyone. The Midterm date setting is gone.</li>
+      </ul>
+    </article>
+
     <article class="patch" id="patch-1-3">
-      <header class="patch-head"><h2>Version 1.3</h2><time datetime="2026-11-04">Nov 4, 2026</time><span class="patch-tag">Latest</span></header>
+      <header class="patch-head"><h2>Version 1.3</h2><time datetime="2026-11-04">Nov 4, 2026</time></header>
       <h3>New</h3>
       <ul>
         <li>Type it: a flashcard mode where you read the definition and type the term. Small spelling slips still count.</li>
@@ -1077,7 +1129,7 @@ try {
       </div>
     </div>
 
-    <p class="note welcome-more">More in Settings: midterm countdown, school color, heading font, spacing, animations, flashcard order and more.</p>
+    <p class="note welcome-more">More in Settings: school color, heading font, spacing, animations, flashcard order and more.</p>
     <div class="welcome-actions">
       <button type="button" class="btn ghost" id="welcome-settings">All settings</button>
       <button type="button" class="btn solid" id="welcome-start">Start studying</button>
@@ -1087,9 +1139,9 @@ try {
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./js/data.js?v=1.3.1"></script>
-<script src="./js/simple.js?v=1.3.1"></script>
-<script src="./js/body.js?v=1.3.1"></script>
-<script src="./js/main.js?v=1.3.1"></script>
+<script src="./js/data.js?v=2.0"></script>
+<script src="./js/simple.js?v=2.0"></script>
+<script src="./js/body.js?v=2.0"></script>
+<script src="./js/main.js?v=2.0"></script>
 </body>
 </html>
