@@ -38,9 +38,11 @@
 
   /* ---------- Settings ---------- */
 
+  // The midterm is Thursday, Nov 12, 2026. It's built in, so nobody has to type it.
+  var EXAM_DATE = '2026-11-12';
   var DEFAULTS = {
     theme: 'light', accent: 'red', color: '#c4122f', font: 'barlow', size: 'normal', density: 'comfy', motion: 'on',
-    simple: 'off', cardFirst: 'term', exam: '', name: '', gameLength: '30', startPage: 'home', board: 'show', goal: '20'
+    simple: 'off', cardFirst: 'term', exam: EXAM_DATE, name: '', gameLength: '30', startPage: 'home', board: 'show', goal: '20'
   };
   var settings = {};
 
@@ -50,6 +52,7 @@
       settings[k] = mine[k] === undefined ? DEFAULTS[k] : mine[k];
     });
     if (settings.simple === true) settings.simple = 'on';
+    settings.exam = EXAM_DATE;
   }
 
   function hexToRgb(hex) {
@@ -128,7 +131,6 @@
         b.setAttribute('aria-pressed', String(on));
       });
     });
-    $('#exam-date').value = settings.exam;
   }
 
   function changeSetting(key, value) {
@@ -149,8 +151,6 @@
     $('#dumb-btn').addEventListener('click', function () {
       changeSetting('simple', settings.simple === 'on' ? 'off' : 'on');
     });
-    $('#exam-date').addEventListener('change', function (e) { changeSetting('exam', e.target.value); });
-    $('#exam-clear').addEventListener('click', function () { changeSetting('exam', ''); });
     $('#set-name').addEventListener('input', function (e) { changeSetting('name', e.target.value.trim()); });
     $('#welcome-name').addEventListener('input', function (e) { changeSetting('name', e.target.value.trim()); });
     $('#welcome-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
@@ -409,7 +409,6 @@
     pick('startPage', 'Open the app on', 'start page last page');
     pick('board', 'Show or hide the scoreboard', 'home');
     settingPage('Your name', 'greeting profile', 'set-name');
-    settingPage('Midterm date', 'countdown exam date test day', 'exam-date');
     settingPage('Backup', 'save load transfer export import device', 'backup-save');
     settingPage('Put it on your phone', 'install app home screen', 'install-btn');
 

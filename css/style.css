@@ -302,8 +302,6 @@ html:not([data-simple]) .simple, html:not([data-simple]) .plain:not(.tbl) { disp
 .set-row .seg { margin-top: 8px; }
 .dot { display: inline-block; width: 12px; height: 12px; margin-right: 5px; vertical-align: -1px; }
 .seg button.is-on .dot { outline: 1px solid var(--paper); }
-.date-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.date-input { min-height: 46px; border: 2px solid var(--ink); background: var(--surface); padding: 6px 10px; }
 .noscript { margin: 0; padding: 16px; background: var(--accent); color: var(--on-accent); font-weight: 600; }
 
 /* Unit layout */
