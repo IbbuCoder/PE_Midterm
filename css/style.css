@@ -717,8 +717,8 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
   .icon-btn { width: 38px; height: 38px; }
   .brand { font-size: 21px; gap: 6px; }
   .brand-logo { width: 24px; height: 24px; }
-  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: env(safe-area-inset-bottom); background: var(--chrome); color: var(--chrome-text); }
-  .tabbar a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 60px; border-top: 3px solid transparent; text-decoration: none; font: 600 14px/1 var(--head); }
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: repeat(6, 1fr); padding-bottom: env(safe-area-inset-bottom); background: var(--chrome); color: var(--chrome-text); }
+  .tabbar a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 60px; border-top: 3px solid transparent; text-decoration: none; font: 600 14px/1 var(--head); min-width: 0; white-space: nowrap; }
   .tabbar svg { width: 23px; height: 23px; }
   .tabbar a[aria-current] { border-top-color: var(--accent-bright); color: var(--accent-bright); }
   .search { margin-top: calc(8px + env(safe-area-inset-top)); max-height: 72vh; max-height: 72dvh; }
@@ -801,4 +801,9 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
   .top .icon-btn { width: 34px; height: 34px; }
   #search-btn { margin-left: 6px; }
   .dumb-btn { font-size: 15px; padding: 6px 7px; min-height: 34px; }
+}
+
+/* Six tabs on a narrow phone: smaller labels so Bookmarks fits. */
+@media (max-width: 420px) {
+  .tabbar a { font-size: 12px; letter-spacing: -.01em; }
 }

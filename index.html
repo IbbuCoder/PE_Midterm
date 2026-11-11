@@ -33,7 +33,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="./css/style.css?v=2.0">
+<link rel="stylesheet" href="./css/style.css?v=2.3">
 </head>
 <body>
 
@@ -99,9 +99,9 @@ try {
       <a href="#flashcards">Flashcards</a>
       <a href="#test">Practice test</a>
       <a href="#weak">Weak spots</a>
+      <a href="#saved">Bookmarks</a>
       <span class="nav-sep" aria-hidden="true"></span>
       <a href="#settings">Settings</a>
-      <a href="#updates">What's new</a>
       <a href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener">Feedback</a>
     </nav>
     <a class="icon-btn" id="feedback-btn" href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener" aria-label="Send feedback or report a problem (Google Form)" title="Send feedback or report a problem"><svg aria-hidden="true"><use href="#i-feedback"></use></svg></a>
@@ -997,6 +997,15 @@ try {
     <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
     <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
 
+    <article class="patch" id="patch-2-3">
+      <header class="patch-head"><h2>Version 2.3</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
+      <h3>Fixed</h3>
+      <ul>
+        <li><strong>Updates show up right away:</strong> some phones kept running an old copy of the app, so the bookmarks never appeared. The app now loads new versions and refreshes itself when one arrives.</li>
+        <li><strong>Bookmarks tab:</strong> Bookmarks now has its own tab in the bottom bar and its own link in the menu.</li>
+      </ul>
+    </article>
+
     <article class="patch" id="patch-2-2">
       <header class="patch-head"><h2>Version 2.2</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
       <h3>Changed</h3>
@@ -1115,6 +1124,7 @@ try {
   <a href="#units" data-tab="units"><svg aria-hidden="true"><use href="#t-units"></use></svg>Units</a>
   <a href="#flashcards" data-tab="flashcards"><svg aria-hidden="true"><use href="#t-cards"></use></svg>Cards</a>
   <a href="#test" data-tab="test"><svg aria-hidden="true"><use href="#t-test"></use></svg>Test</a>
+  <a href="#saved" data-tab="saved"><svg aria-hidden="true"><use href="#i-bookmark"></use></svg>Bookmarks</a>
   <a href="#more" data-tab="more"><svg aria-hidden="true"><use href="#t-more"></use></svg>More</a>
 </nav>
 
@@ -1179,9 +1189,9 @@ try {
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./js/data.js?v=2.0"></script>
-<script src="./js/simple.js?v=2.0"></script>
-<script src="./js/body.js?v=2.0"></script>
-<script src="./js/main.js?v=2.0"></script>
+<script src="./js/data.js?v=2.3"></script>
+<script src="./js/simple.js?v=2.3"></script>
+<script src="./js/body.js?v=2.3"></script>
+<script src="./js/main.js?v=2.3"></script>
 </body>
 </html>

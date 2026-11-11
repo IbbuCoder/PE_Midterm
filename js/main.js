@@ -171,7 +171,7 @@
   /* ---------- Welcome screen and patch notes ---------- */
 
   // Bump this when a new entry goes at the top of the What's new page.
-  var LATEST = { version: '2.2', note: 'Version 2.2: bookmark sections of the notes like a textbook, plus test questions. Find them all on the Bookmarks page.' };
+  var LATEST = { version: '2.3', note: 'Version 2.3: bookmark sections of the notes like a textbook. Bookmarks now has its own tab.' };
 
   // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
   function openDialog(box) {
@@ -766,7 +766,7 @@
       else a.removeAttribute('aria-current');
     });
     var tabId = /^u\d$/.test(id) ? 'units' : id;
-    if (['settings', 'updates', 'weak', 'more', 'sheet', 'last', 'saved'].indexOf(id) > -1) tabId = 'more';
+    if (['settings', 'updates', 'weak', 'more', 'sheet', 'last'].indexOf(id) > -1) tabId = 'more';
     if (id === 'drills' || id === 'match') tabId = 'test';
     if (id !== 'test') test.mockIntro = false;
     $$('.tabbar a').forEach(function (a) {
@@ -3360,7 +3360,22 @@
       link.rel = 'manifest';
       link.href = './manifest.webmanifest';
       document.head.appendChild(link);
-      if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () {});
+      if ('serviceWorker' in navigator) {
+        // When a new version of the app takes over, reload once so the new files are used.
+        var hadWorker = !!navigator.serviceWorker.controller;
+        var reloaded = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          if (!hadWorker || reloaded) return;
+          reloaded = true;
+          location.reload();
+        });
+        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(function (reg) {
+          // Check for a new version whenever the app comes back to the front.
+          document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') reg.update().catch(function () {});
+          });
+        }).catch(function () {});
+      }
     }
   }
 
