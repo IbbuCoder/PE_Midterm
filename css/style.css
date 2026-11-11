@@ -485,32 +485,21 @@ blockquote { margin: 0 0 12px; padding-left: 14px; border-left: 5px solid var(--
 .type-form { display: flex; gap: 6px; }
 .type-input { flex: 1; min-width: 0; min-height: 48px; border: 2px solid var(--ink); background: var(--surface); padding: 6px 10px; font-size: 18px; }
 .type-result { margin: 6px 0 0; font-weight: 600; }
-/* Machine diagrams */
-.mx { display: block; width: 100%; height: auto; }
-.mx line, .mx polyline, .mx path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.mx-frame { stroke: var(--mute); stroke-width: 3; opacity: .45; }
-.mx-bench, .mx-padbar, .mx-handle { stroke: var(--mute); opacity: .55; }
-.mx-bench { stroke-width: 7; }
-.mx-padbar { stroke-width: 9; }
-.mx-handle { stroke-width: 6; }
-.mx-body { stroke: var(--ink); stroke-width: 6; }
-.mx-head { fill: var(--ink); }
-.mx-hit { stroke: var(--accent); stroke-width: 7; }
-.mx-hitfill { fill: var(--accent); }
-.mx-ghost { stroke: var(--ink); stroke-width: 6; opacity: .14; }
-.mx-pad { fill: var(--mute); opacity: .7; }
-.mx-ghostpad { opacity: .2; }
-.mx-move { stroke: var(--accent); stroke-width: 2.5; }
-.mx-tip { fill: var(--accent); }
-.mx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-.mx-card { margin: 0; break-inside: avoid; }
-.mx-card .mx { padding: 14px 18px 10px; background: var(--fill); border-radius: 6px; }
-.mx-card figcaption { margin-top: 10px; }
-.mx-card b { display: block; font: 700 22px/1.1 var(--head); }
-.mx-card span { display: block; margin-top: 2px; font-size: 15px; color: var(--accent); font-weight: 600; }
-.mx-card .mx-how { margin-top: 4px; color: var(--mute); font-weight: 400; line-height: 1.4; }
-.panel-mx { display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 14px; align-items: center; }
-.panel-mx .mx { padding: 8px 10px; background: var(--fill); border-radius: 6px; }
+/* Machine guide */
+.mx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.mx-card { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 16px; align-items: start; padding: 14px; border: 1px solid var(--rule); background: var(--paper); break-inside: avoid; }
+.mx-card.two { grid-template-columns: 160px minmax(0, 1fr); }
+.mx-fig { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px 6px; background: var(--fill); }
+.mini-body { display: block; width: 100%; height: auto; max-height: 150px; }
+.mini-body .m-shape { transition: none; }
+.mx-views { font: 600 12px/1 var(--head); text-transform: uppercase; letter-spacing: .06em; color: var(--mute); }
+.mx-text h3 { margin: 0; font: 700 24px/1.1 var(--head); }
+.mx-works { margin: 2px 0 8px; color: var(--accent); font-weight: 600; font-size: 15px; }
+.mx-steps { list-style: none; margin: 0; padding: 0; font-size: 15px; line-height: 1.4; }
+.mx-steps li + li { margin-top: 6px; }
+.mx-steps b { display: block; font: 600 12px/1.2 var(--head); text-transform: uppercase; letter-spacing: .06em; color: var(--mute); }
+.panel-mx { display: grid; gap: 14px; }
+.panel-mx .mx-steps { padding-left: 14px; border-left: 3px solid var(--rule); }
 .machine-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
 .machine-list button { min-height: 44px; border: 2px solid var(--ink); background: var(--paper); font: 600 19px/1.05 var(--head); padding: 4px; }
 .machine-list button.is-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
@@ -839,6 +828,8 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 }
 
 @media (max-width: 560px) {
-  .panel-mx { grid-template-columns: minmax(0, 1fr) 132px; }
-  .panel-mx .panel-name { font-size: 28px; }
+  .panel-mx { gap: 8px; }
+  .panel-mx .mx-steps { display: none; }
+  .mx-card { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 12px; }
+  .mx-card.two { grid-template-columns: 136px minmax(0, 1fr); }
 }
