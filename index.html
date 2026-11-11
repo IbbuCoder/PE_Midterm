@@ -51,6 +51,7 @@ try {
   <symbol id="t-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></symbol>
   <symbol id="i-speak" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 010 7M18.500 6a8.500 8.500 0 010 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="i-feedback" viewBox="0 0 24 24"><path d="M4 4h16v12H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 7.5v4M12 13.2v.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-5-6 5z" fill="currentColor" fill-opacity="var(--bm-fill, 0)" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.500" cy="10.500" r="6.500" fill="none" stroke="currentColor" stroke-width="2.400"/><path d="M15.500 15.500L21 21" fill="none" stroke="currentColor" stroke-width="2.400"/></symbol>
   <symbol id="i-hydro" viewBox="0 0 48 48">
     <path d="M6 8v34h36V8" fill="none" stroke="currentColor" stroke-width="2.5"/>
@@ -130,6 +131,7 @@ try {
       <button type="button" class="big-link" data-quick="game"><strong>Game Day</strong><span id="home-game"></span></button>
       <a class="big-link" href="#drills"><strong>Formula drills</strong><span>Heart rate, 1 Rep Max and body fat math with new numbers each time</span></a>
       <a class="big-link" href="#match"><strong>Matching game</strong><span id="home-match"></span></a>
+      <a class="big-link" href="#saved"><strong>Bookmarks</strong><span>Note sections, questions and passages you bookmarked</span></a>
     </div>
     <a class="whats-new" href="#updates"><b>New</b> <span id="home-news"></span></a>
     <a class="feedback-bar" href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener"><b>Problem or idea?</b> <span>Report a bug, a wrong answer or a complaint. Send feedback (Google Form)</span></a>
@@ -924,7 +926,7 @@ try {
     <header class="unit-head"><h1 tabindex="-1">More</h1></header>
     <nav class="more-list" aria-label="More pages">
       <a class="more-feedback" href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener"><b>Send feedback</b><span>Report a problem, a wrong answer, a complaint or an idea (Google Form)</span></a>
-      <a href="#saved"><b>Saved</b><span>Questions and passages you saved for later</span></a>
+      <a href="#saved"><b>Bookmarks</b><span>Bookmarked note sections, questions and saved passages</span></a>
       <a href="#weak"><b>Weak spots</b><span>What to study next, based on your misses</span></a>
       <a href="#last"><b>Last look</b><span>Formulas, the muscle chart and your misses on one page</span></a>
       <a href="#drills"><b>Formula drills</b><span>Practice the heart rate, 1 Rep Max and body fat math</span></a>
@@ -938,10 +940,10 @@ try {
 </section>
 
 <!-- SAVED -->
-<section class="view" id="view-saved" data-title="Saved">
+<section class="view" id="view-saved" data-title="Bookmarks">
   <div class="wrap narrow">
-    <header class="unit-head"><h1 tabindex="-1">Saved</h1></header>
-    <p class="note">Questions you saved during a test and passages you saved from the notes. They stay on this device, even if you clear your progress.</p>
+    <header class="unit-head"><h1 tabindex="-1">Bookmarks</h1></header>
+    <p class="note">Sections of the notes you bookmarked, questions you bookmarked during a test, and passages you saved. They stay on this device, even if you clear your progress.</p>
     <div id="saved-root"></div>
   </div>
 </section>
@@ -994,6 +996,15 @@ try {
   <div class="wrap narrow">
     <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
     <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
+
+    <article class="patch" id="patch-2-2">
+      <header class="patch-head"><h2>Version 2.2</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
+      <h3>Changed</h3>
+      <ul>
+        <li><strong>Bookmark the notes like a textbook:</strong> every section of every unit has a bookmark button next to its heading. Bookmarked sections get a ribbon and show up on the Bookmarks page, so you can jump straight back to them.</li>
+        <li><strong>Bookmarks are easier to find:</strong> every test question has a Bookmark button next to it. Your bookmarks and saved passages are on the Bookmarks page, linked from Home, the Practice test page, More and the menu.</li>
+      </ul>
+    </article>
 
     <article class="patch" id="patch-2-1">
       <header class="patch-head"><h2>Version 2.1</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
