@@ -171,7 +171,7 @@
   /* ---------- Welcome screen and patch notes ---------- */
 
   // Bump this when a new entry goes at the top of the What's new page.
-  var LATEST = { version: '2.1', note: 'Version 2.1: skip and save test questions, text evidence when you are stuck, and saved passages.' };
+  var LATEST = { version: '2.2', note: 'Version 2.2: bookmark sections of the notes like a textbook, plus test questions. Find them all on the Bookmarks page.' };
 
   // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
   function openDialog(box) {
@@ -392,7 +392,7 @@
     page('Send feedback', 'Page', 'feedback idea ideas suggestion suggest recommend question bug report form contact complaint complain complaints problem issue wrong broken google form help', function () {
       window.open('https://forms.gle/6LFouHe3cwiY1r5t7', '_blank', 'noopener');
     });
-    page('Saved', 'Page', 'saved bookmarks bookmark saved questions passages highlights clips notes later', function () { location.hash = 'saved'; }, 15);
+    page('Bookmarks', 'Page', 'saved bookmarks bookmark saved questions passages highlights clips notes later', function () { location.hash = 'saved'; }, 15);
     page('Weak spots', 'Page', 'weak weakest missed misses review what to study next struggling', function () { location.hash = 'weak'; });
     page('What\'s new', 'Page', 'patch notes updates changelog changes version new features', function () { location.hash = 'updates'; });
     page('Welcome screen', 'Setting', 'welcome tour setup customize intro first', function () { openDialog($('#welcome')); });
@@ -2151,7 +2151,7 @@
     if (adding) list.push(q.q);
     saved.savedQs = list;
     save();
-    toast(adding ? 'Question saved' : 'Removed from saved');
+    toast(adding ? 'Bookmarked. Find it under Bookmarks' : 'Bookmark removed');
   }
 
   function savedIds() {
@@ -2176,7 +2176,7 @@
     clip.at = Date.now();
     saved.clips = [clip].concat(list);
     save();
-    toast('Passage saved. Find it under More, Saved');
+    toast('Passage saved. Find it under Bookmarks');
   }
 
   var STOP = ('the a an and or of to in on for is are what which who whom how do does your you it its at by with be as that this ' +
@@ -2260,6 +2260,56 @@
       '<a class="link-btn" href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener">Something wrong? Tell us</a></div></div>';
   }
 
+  function markList() {
+    return (saved.marks || []).filter(function (id) { return document.getElementById(id); });
+  }
+
+  function paintMarks() {
+    var list = markList();
+    $$('.mark-icon').forEach(function (btn) {
+      var on = list.indexOf(btn.dataset.mark) > -1;
+      btn.setAttribute('aria-pressed', String(on));
+      btn.setAttribute('aria-label', (on ? 'Remove bookmark from ' : 'Bookmark ') + btn.dataset.title);
+      document.getElementById(btn.dataset.mark).classList.toggle('is-marked', on);
+    });
+  }
+
+  function toggleMark(id) {
+    var list = markList();
+    var on = list.indexOf(id) > -1;
+    saved.marks = on ? list.filter(function (x) { return x !== id; }) : list.concat(id);
+    save();
+    paintMarks();
+    toast(on ? 'Bookmark removed' : 'Section bookmarked. Find it under Bookmarks');
+  }
+
+  // A bookmark button next to every heading in the notes, like a ribbon in a textbook.
+  function buildMarks() {
+    $$('.view.unit').forEach(function (view) {
+      var head = $('.unit-head', view);
+      var tip = document.createElement('p');
+      tip.className = 'note mark-tip';
+      tip.innerHTML = 'Tap <svg aria-hidden="true"><use href="#i-bookmark"></use></svg> next to a heading to bookmark that section. Select any text to save just that passage.';
+      head.parentNode.insertBefore(tip, head.nextSibling);
+      $$('.block[id], .tool[id]', view).forEach(function (sec) {
+        var h = $(':scope > h2', sec);
+        if (!h) return;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'mark-icon';
+        btn.dataset.mark = sec.id;
+        btn.dataset.title = h.textContent.trim();
+        btn.innerHTML = '<svg aria-hidden="true"><use href="#i-bookmark"></use></svg>';
+        h.appendChild(btn);
+      });
+    });
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.mark-icon');
+      if (btn) toggleMark(btn.dataset.mark);
+    });
+    paintMarks();
+  }
+
   // Select text in a unit's notes, then tap Save passage.
   function buildClipper() {
     var bar = document.createElement('button');
@@ -2321,10 +2371,27 @@
     var root = $('#saved-root');
     var ids = savedIds();
     var clips = clipList();
+    var marks = markList();
     root.innerHTML =
-      '<h2 class="t-section">Saved questions (' + ids.length + ')</h2>' +
+      '<h2 class="t-section">Bookmarked sections of the notes (' + marks.length + ')</h2>' +
+      (marks.length
+        ? '<ul class="saved-list">' + marks.map(function (id) {
+            var sec = document.getElementById(id);
+            var view = sec.closest('.view');
+            var btn = $('.mark-icon', sec);
+            var copy = sec.cloneNode(true);
+            $$('.simple, h2, button', copy).forEach(function (x) { x.parentNode.removeChild(x); });
+            var body = allText(copy);
+            return '<li><span class="saved-q">' + esc(btn ? btn.dataset.title : id) + '</span>' +
+              '<p class="mark-peek">' + esc(body.slice(0, 140)) + (body.length > 140 ? '...' : '') + '</p>' +
+              '<div class="ev-actions"><span class="ev-src">' + esc(view.dataset.title) + '</span>' +
+              '<button type="button" class="link-btn" data-mark-open="' + id + '">Open in notes</button>' +
+              '<button type="button" class="link-btn" data-mark-del="' + id + '">Remove</button></div></li>';
+          }).join('') + '</ul>'
+        : '<p class="note">Nothing yet. In any unit, tap the bookmark next to a heading to keep that section here.</p>') +
+      '<h2 class="t-section">Bookmarked questions (' + ids.length + ')</h2>' +
       (ids.length
-        ? '<div class="test-actions"><button type="button" class="btn solid" data-quick="saved">Practice saved questions</button></div>' +
+        ? '<div class="test-actions"><button type="button" class="btn solid" data-quick="saved">Practice bookmarked questions</button></div>' +
           '<ul class="saved-list">' + ids.map(function (id) {
             var q = PE.questions[id];
             return '<li><span class="saved-q">' + esc(q.q) + '</span>' +
@@ -2332,7 +2399,7 @@
               '<div class="ev-actions"><span class="ev-src">' + esc(unitLabel(q.u)) + '</span>' +
               '<button type="button" class="link-btn" data-unsave-q="' + id + '">Remove</button></div></li>';
           }).join('') + '</ul>'
-        : '<p class="note">Nothing yet. Tap <b>Save question</b> during a practice test to keep a question here.</p>') +
+        : '<p class="note">Nothing yet. During a practice test, tap the <b>Bookmark</b> button next to a question to keep it here.</p>') +
       '<h2 class="t-section">Saved passages (' + clips.length + ')</h2>' +
       (clips.length
         ? '<ul class="saved-list">' + clips.map(function (c, i) {
@@ -2349,6 +2416,16 @@
       var unq = e.target.closest('[data-unsave-q]');
       if (unq) {
         toggleSavedQ(PE.questions[Number(unq.dataset.unsaveQ)]);
+        renderSaved();
+      }
+      var mOpen = e.target.closest('[data-mark-open]');
+      if (mOpen) {
+        var msec = document.getElementById(mOpen.dataset.markOpen);
+        goToSection(msec.closest('.view').id.replace('view-', ''), msec);
+      }
+      var mDel = e.target.closest('[data-mark-del]');
+      if (mDel) {
+        toggleMark(mDel.dataset.markDel);
         renderSaved();
       }
       var del = e.target.closest('[data-clip-del]');
@@ -2439,7 +2516,7 @@
     if (scope === 'game') return 'Game Day';
     if (scope === 'mock') return 'Mock midterm';
     if (scope === 'study') return 'Study today';
-    if (scope === 'saved') return 'Saved questions';
+    if (scope === 'saved') return 'Bookmarked questions';
     if (isMissScope(scope)) return 'Retry ' + unitOf(scope.slice(1)).num + ' ' + unitOf(scope.slice(1)).short + ' misses';
     if (isOneQuestion(scope)) return 'One question';
     var u = unitOf(scope);
@@ -2534,6 +2611,8 @@
       '<button type="button" class="mode-card" data-quick="daily"><b>Daily 10</b><span>Misses and weak units</span></button>' +
       '<button type="button" class="mode-card" data-quick="game"><b>Game Day</b><span>' + gameLength() + ' questions, answers at the end</span></button>' +
       '</div>' +
+      '<a class="bm-bar" href="#saved"><svg aria-hidden="true"><use href="#i-bookmark"></use></svg><b>Bookmarks</b><span>' +
+        markList().length + (markList().length === 1 ? ' section, ' : ' sections, ') + savedIds().length + (savedIds().length === 1 ? ' question, ' : ' questions, ') + clipList().length + (clipList().length === 1 ? ' passage' : ' passages') + '</span></a>' +
       '<h2 class="t-section">More ways to practice</h2>' +
       '<div class="mode-grid">' +
       '<button type="button" class="mode-card" data-mock><b>Mock midterm</b><span>All ' + PE.questions.length + ' questions, ' + MOCK_MINUTES + ' minutes on the clock</span></button>' +
@@ -2560,7 +2639,9 @@
         (run.endsAt ? '<span class="t-timer" data-timer></span>' : '') +
         '<span>' + (run.exam ? 'Answers at the end' : run.right + ' right') + '</span></div>' +
       '<div class="t-bar"><i style="width:' + ((run.pos + (answered ? 1 : 0)) / run.ids.length * 100) + '%"></i></div>' +
-      '<p class="t-q">' + (q.t === 'tf' ? 'True or false: ' : '') + esc(q.q) + '</p>' +
+      '<div class="q-head"><p class="t-q">' + (q.t === 'tf' ? 'True or false: ' : '') + esc(q.q) + '</p>' +
+        '<button type="button" class="bm-btn" data-save-q aria-pressed="' + isSavedQ(q) + '" aria-label="' + (isSavedQ(q) ? 'Remove bookmark' : 'Bookmark this question') + '">' +
+        '<svg aria-hidden="true"><use href="#i-bookmark"></use></svg><span>' + (isSavedQ(q) ? 'Bookmarked' : 'Bookmark') + '</span></button></div>' +
       '<div class="opts">' + run.order.map(function (i) {
         var cls = 'opt';
         if (answered && i === q.a) cls += ' right';
@@ -2570,7 +2651,6 @@
       (run.skips && run.skips[run.ids[run.pos]] && !answered ? '<p class="t-back">You skipped this one earlier.</p>' : '') +
       '<div class="q-tools">' +
         (!answered && run.pos < run.ids.length - 1 ? '<button type="button" class="btn ghost" data-skip>Skip for now</button>' : '') +
-        '<button type="button" class="btn ghost" data-save-q aria-pressed="' + isSavedQ(q) + '">' + (isSavedQ(q) ? 'Saved' : 'Save question') + '</button>' +
         (run.scope !== 'mock' && !run.evidence ? '<button type="button" class="btn ghost" data-evidence>' + (answered ? 'Show text evidence' : 'I don\'t know: show evidence') + '</button>' : '') +
       '</div>' +
       (run.evidence ? evidenceHtml(q) : '') +
@@ -3236,6 +3316,7 @@
     buildFlashcards();
     buildTest();
     buildSaved();
+    buildMarks();
     buildClipper();
     buildDrill();
     buildMatch();
@@ -3253,7 +3334,7 @@
 
     $('#clear-all').addEventListener('click', function () {
       if (!window.confirm('Clear all your scores, flashcard marks and misses on this device?')) return;
-      saved = { settings: settings, savedQs: saved.savedQs, clips: saved.clips };
+      saved = { settings: settings, savedQs: saved.savedQs, clips: saved.clips, marks: saved.marks };
       save();
       toast('Progress cleared');
       test.run = null;
