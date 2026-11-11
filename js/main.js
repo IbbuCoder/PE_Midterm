@@ -171,7 +171,7 @@
   /* ---------- Welcome screen and patch notes ---------- */
 
   // Bump this when a new entry goes at the top of the What's new page.
-  var LATEST = { version: '2.2', note: 'Version 2.2: bookmark sections of the notes like a textbook, plus test questions. Find them all on the Bookmarks page.' };
+  var LATEST = { version: '2.4', note: 'Version 2.4: a 40 question mock quiz with a 45 minute clock, right on the Test page.' };
 
   // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
   function openDialog(box) {
@@ -378,7 +378,7 @@
     page('Study today', 'Page', 'review due schedule spaced repetition what to study', quick('study'), 15);
     page('Daily 10', 'Page', 'daily streak quick', quick('daily'));
     page('Game Day', 'Page', 'mock exam final', quick('game'));
-    page('Mock midterm', 'Page', 'mock midterm exam timed timer 45 minutes full practice clock', openMockIntro, 15);
+    page('Mock quiz', 'Page', 'mock quiz midterm exam timed timer 45 minutes 40 questions full practice clock test', openMockIntro, 15);
     page('Formula drills', 'Page', 'formula formulas math drill practice problems numbers max heart rate 1 rep max body fat weight calculate', function () { location.hash = 'drills'; }, 15);
     page('Matching game', 'Page', 'match matching game pairs terms definitions timed fun', function () { location.hash = 'match'; }, 15);
     page('Last look', 'Page', 'last look test day final review formulas missed muscle chart cram', function () { location.hash = 'last'; }, 15);
@@ -766,7 +766,7 @@
       else a.removeAttribute('aria-current');
     });
     var tabId = /^u\d$/.test(id) ? 'units' : id;
-    if (['settings', 'updates', 'weak', 'more', 'sheet', 'last', 'saved'].indexOf(id) > -1) tabId = 'more';
+    if (['settings', 'updates', 'weak', 'more', 'sheet', 'last'].indexOf(id) > -1) tabId = 'more';
     if (id === 'drills' || id === 'match') tabId = 'test';
     if (id !== 'test') test.mockIntro = false;
     $$('.tabbar a').forEach(function (a) {
@@ -2514,7 +2514,7 @@
     if (scope === 'missed') return 'Retry my misses';
     if (scope === 'daily') return 'Daily 10';
     if (scope === 'game') return 'Game Day';
-    if (scope === 'mock') return 'Mock midterm';
+    if (scope === 'mock') return 'Mock quiz';
     if (scope === 'study') return 'Study today';
     if (scope === 'saved') return 'Bookmarked questions';
     if (isMissScope(scope)) return 'Retry ' + unitOf(scope.slice(1)).num + ' ' + unitOf(scope.slice(1)).short + ' misses';
@@ -2555,7 +2555,7 @@
     if (/^mu\d$/.test(scope)) ids = unitMisses(scope.slice(1));
     if (scope === 'daily') ids = dailyIds();
     if (scope === 'saved') ids = savedIds();
-    if (scope === 'mock') ids = PE.questions.map(function (q, i) { return i; });
+    if (scope === 'mock') ids = mockIds();
     if (scope === 'game') ids = shuffle(PE.questions.map(function (q, i) { return i; })).slice(0, gameLength());
     if (scope === 'study') {
       var plan = studyPlan();
@@ -2607,6 +2607,8 @@
           (run.endsAt ? ', ' + clockText(run.endsAt - Date.now()) + ' left' : '') + '</span></button>'
         : '') +
       '<h2 class="t-section">Quick practice</h2>' +
+      '<button type="button" class="mock-card" data-mock><b>Mock quiz</b><span>' + mockCount() + ' questions · ' + MOCK_MINUTES + ' minutes on the clock · answers at the end' +
+        (((saved.test || {}).mock) ? ' · Last: ' + saved.test.mock.score + '/' + saved.test.mock.total : '') + '</span></button>' +
       '<div class="mode-grid">' + study + retry +
       '<button type="button" class="mode-card" data-quick="daily"><b>Daily 10</b><span>Misses and weak units</span></button>' +
       '<button type="button" class="mode-card" data-quick="game"><b>Game Day</b><span>' + gameLength() + ' questions, answers at the end</span></button>' +
@@ -2615,7 +2617,7 @@
         markList().length + (markList().length === 1 ? ' section, ' : ' sections, ') + savedIds().length + (savedIds().length === 1 ? ' question, ' : ' questions, ') + clipList().length + (clipList().length === 1 ? ' passage' : ' passages') + '</span></a>' +
       '<h2 class="t-section">More ways to practice</h2>' +
       '<div class="mode-grid">' +
-      '<button type="button" class="mode-card" data-mock><b>Mock midterm</b><span>All ' + PE.questions.length + ' questions, ' + MOCK_MINUTES + ' minutes on the clock</span></button>' +
+      '<a class="mode-card" href="#sheet"><b>Review sheet</b><span>Every flashcard on a few printable pages</span></a>' +
       '<a class="mode-card" href="#drills"><b>Formula drills</b><span>Heart rate, 1 Rep Max and body fat math</span></a>' +
       '<a class="mode-card" href="#match"><b>Matching game</b><span>' + (saved.matchBest ? 'Best time: ' + clockText(saved.matchBest) : 'Match terms to their meanings') + '</span></a>' +
       '<a class="mode-card" href="#last"><b>Last look</b><span>Formulas, muscle chart and your misses</span></a>' +
@@ -2650,7 +2652,7 @@
       }).join('') + '</div>' +
       (run.skips && run.skips[run.ids[run.pos]] && !answered ? '<p class="t-back">You skipped this one earlier.</p>' : '') +
       '<div class="q-tools">' +
-        (!answered && run.pos < run.ids.length - 1 ? '<button type="button" class="btn ghost" data-skip>Skip for now</button>' : '') +
+        (!answered && run.scope !== 'mock' && run.pos < run.ids.length - 1 ? '<button type="button" class="btn ghost" data-skip>Skip for now</button>' : '') +
         (run.scope !== 'mock' && !run.evidence ? '<button type="button" class="btn ghost" data-evidence>' + (answered ? 'Show text evidence' : 'I don\'t know: show evidence') + '</button>' : '') +
       '</div>' +
       (run.evidence ? evidenceHtml(q) : '') +
@@ -2769,6 +2771,26 @@
   /* ---------- Mock midterm ---------- */
 
   var MOCK_MINUTES = 45;
+  var MOCK_QUESTIONS = 40;
+
+  function mockCount() {
+    return Math.min(MOCK_QUESTIONS, PE.questions.length);
+  }
+
+  // 40 questions, with each unit's share matching its share of all the questions.
+  function mockIds() {
+    var total = mockCount();
+    var byUnit = PE.units.map(function (u) {
+      var ids = shuffle(PE.questions.map(function (q, i) { return i; }).filter(function (i) { return 'u' + PE.questions[i].u === u.id; }));
+      var exact = ids.length * total / PE.questions.length;
+      return { ids: ids, take: Math.floor(exact), extra: exact - Math.floor(exact) };
+    });
+    var left = total - byUnit.reduce(function (n, u) { return n + u.take; }, 0);
+    byUnit.slice().sort(function (a, b) { return b.extra - a.extra; }).forEach(function (u) {
+      if (left > 0 && u.take < u.ids.length) { u.take++; left--; }
+    });
+    return byUnit.reduce(function (all, u) { return all.concat(u.ids.slice(0, u.take)); }, []);
+  }
 
   function clockText(ms) {
     var sec = Math.max(0, Math.ceil(ms / 1000));
@@ -2787,8 +2809,9 @@
     var last = (saved.test || {}).mock;
     root.innerHTML =
       '<div class="mock-intro">' +
-      '<h2>Mock midterm</h2>' +
-      '<ul><li>All ' + PE.questions.length + ' questions, mixed up</li><li>' + MOCK_MINUTES + ' minutes on the clock</li>' +
+      '<h2>Mock quiz</h2>' +
+      '<ul><li>' + mockCount() + ' questions from every unit, mixed up</li><li>' + MOCK_MINUTES + ' minutes on the clock</li>' +
+      '<li>No skipping or text evidence, just like the real thing</li>' +
       '<li>Answers and your score by unit at the end</li><li>The clock keeps running if you leave the page</li></ul>' +
       '<p class="note">This is practice made from the class notes. The real midterm may ask things differently.</p>' +
       (last ? '<p class="note">Last time: ' + last.score + ' / ' + last.total + '</p>' : '') +
@@ -2815,7 +2838,7 @@
     test.mockIntro = false;
     finishRun(run);
     renderTest();
-    toast('Time is up. Mock midterm handed in.');
+    toast('Time is up. Mock quiz handed in.');
   }
 
   function startClock() {
@@ -2916,7 +2939,7 @@
       steps.push({ href: '#' + weakest.id, read: weakest.id, title: 'Reread ' + weakest.num + ' ' + weakest.short, note: 'Your lowest unit at ' + unitScore(weakest) + '%' });
     }
     if (saved.mockDay !== thisDay() && (daysLeft <= 1 || !(saved.test || {}).mock)) {
-      steps.push({ attrs: 'data-mock', title: 'Take the mock midterm', note: 'All ' + PE.questions.length + ' questions in ' + MOCK_MINUTES + ' minutes' });
+      steps.push({ attrs: 'data-mock', title: 'Take the mock quiz', note: mockCount() + ' questions in ' + MOCK_MINUTES + ' minutes' });
     }
     // Four at most, so the list stays doable in one sitting.
     return steps.slice(0, 4);
@@ -3360,7 +3383,22 @@
       link.rel = 'manifest';
       link.href = './manifest.webmanifest';
       document.head.appendChild(link);
-      if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () {});
+      if ('serviceWorker' in navigator) {
+        // When a new version of the app takes over, reload once so the new files are used.
+        var hadWorker = !!navigator.serviceWorker.controller;
+        var reloaded = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          if (!hadWorker || reloaded) return;
+          reloaded = true;
+          location.reload();
+        });
+        navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(function (reg) {
+          // Check for a new version whenever the app comes back to the front.
+          document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') reg.update().catch(function () {});
+          });
+        }).catch(function () {});
+      }
     }
   }
 
