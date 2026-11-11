@@ -33,7 +33,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="./css/style.css?v=2.3">
+<link rel="stylesheet" href="./css/style.css?v=2.4">
 </head>
 <body>
 
@@ -129,6 +129,7 @@ try {
       <a class="big-link" href="#test"><strong>Practice test</strong><span id="home-test"></span></a>
       <button type="button" class="big-link" data-quick="daily"><strong>Daily 10</strong><span id="home-daily"></span></button>
       <button type="button" class="big-link" data-quick="game"><strong>Game Day</strong><span id="home-game"></span></button>
+      <button type="button" class="big-link" data-mock><strong>Mock quiz</strong><span>40 questions, 45 minutes on the clock</span></button>
       <a class="big-link" href="#drills"><strong>Formula drills</strong><span>Heart rate, 1 Rep Max and body fat math with new numbers each time</span></a>
       <a class="big-link" href="#match"><strong>Matching game</strong><span id="home-match"></span></a>
       <a class="big-link" href="#saved"><strong>Bookmarks</strong><span>Note sections, questions and passages you bookmarked</span></a>
@@ -931,7 +932,7 @@ try {
       <a href="#last"><b>Last look</b><span>Formulas, the muscle chart and your misses on one page</span></a>
       <a href="#drills"><b>Formula drills</b><span>Practice the heart rate, 1 Rep Max and body fat math</span></a>
       <a href="#match"><b>Matching game</b><span>Match terms to their meanings on the clock</span></a>
-      <a href="#test" data-mock><b>Mock midterm</b><span>Every question, 45 minutes, answers at the end</span></a>
+      <a href="#test" data-mock><b>Mock quiz</b><span>40 questions, 45 minutes, answers at the end</span></a>
       <a href="#sheet"><b>Review sheet</b><span>Every flashcard on a few printable pages</span></a>
       <a href="#settings"><b>Settings</b><span>Theme, colors, text size and more</span></a>
       <a href="#updates"><b>What's new</b><span>Patch notes</span></a>
@@ -996,6 +997,14 @@ try {
   <div class="wrap narrow">
     <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
     <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
+
+    <article class="patch" id="patch-2-4">
+      <header class="patch-head"><h2>Version 2.4</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
+      <h3>New</h3>
+      <ul>
+        <li><strong>Mock quiz:</strong> 40 questions from every unit with a 45 minute clock. It's at the top of the Test page and on Home. Answers and your score by unit come at the end. This replaces the 47 question mock midterm.</li>
+      </ul>
+    </article>
 
     <article class="patch" id="patch-2-3">
       <header class="patch-head"><h2>Version 2.3</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
@@ -1189,9 +1198,9 @@ try {
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./js/data.js?v=2.3"></script>
-<script src="./js/simple.js?v=2.3"></script>
-<script src="./js/body.js?v=2.3"></script>
-<script src="./js/main.js?v=2.3"></script>
+<script src="./js/data.js?v=2.4"></script>
+<script src="./js/simple.js?v=2.4"></script>
+<script src="./js/body.js?v=2.4"></script>
+<script src="./js/main.js?v=2.4"></script>
 </body>
 </html>

@@ -170,6 +170,10 @@ figure { margin: 0; }
 .last-muscles li::marker { font-weight: 700; color: var(--accent); }
 .last-muscles b { display: block; }
 .last-muscles span { color: var(--mute); font-size: 15px; }
+.mock-card { display: block; width: 100%; margin-bottom: 10px; padding: 16px; text-align: left; background: var(--chrome); color: var(--chrome-text); border: 0; border-left: 8px solid var(--accent); }
+.mock-card b { display: block; font: 700 32px/1.05 var(--head); }
+.mock-card span { display: block; margin-top: 4px; font-size: 16px; opacity: .85; }
+.mock-card:hover b { text-decoration: underline; }
 .mock-intro h2 { margin: 18px 0 6px; font: 700 34px/1.1 var(--head); }
 .mock-intro ul { margin: 0 0 12px; padding-left: 22px; }
 .t-timer { font-variant-numeric: tabular-nums; }
