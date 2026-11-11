@@ -1160,15 +1160,6 @@
     return '<ol class="mx-steps"><li><b>Start</b>' + esc(steps[0]) + '</li><li><b>Move</b>' + esc(steps[1]) + '</li></ol>';
   }
 
-  // Front, back or both, depending on where the muscles are.
-  function machineViews(m) {
-    var views = [];
-    ['Front', 'Back'].forEach(function (v) {
-      if (m.muscles.some(function (id) { return muscleById(id).view === v; })) views.push(v.toLowerCase());
-    });
-    return views;
-  }
-
   function renderPanel() {
     var panel = $('#map-panel');
     if (map.mode === 'explore') {
@@ -1193,7 +1184,7 @@
           '<div class="panel-name">' + esc(map.machine.name) + '</div>' +
           '<p class="panel-row"><strong>Works:</strong> ' + esc(map.machine.works) + '</p>' +
           '<p class="panel-view">Muscle ' + map.machine.muscles.map(function (id) { return 'number ' + muscleById(id).n; }).join(' and ') + ' on the chart</p></div>' +
-          stepsHtml(map.machine.id) + '</div>';
+          '<div class="mx-fig">' + (PE.machineArt[map.machine.id] || '') + '</div>' + stepsHtml(map.machine.id) + '</div>';
       }
     } else {
       renderQuizPanel(panel);
@@ -1367,12 +1358,9 @@
     window.PE_buildBody($('#figure'));
 
     $('#mx-grid').innerHTML = PE.machines.map(function (m) {
-      var views = machineViews(m);
-      var where = m.muscles.map(function (id) { var x = muscleById(id); return x.name + ' (#' + x.n + ', ' + x.view.toLowerCase() + ')'; }).join(' and ');
-      return '<article class="mx-card' + (views.length > 1 ? ' two' : '') + '">' +
-        '<div class="mx-fig' + (views.length > 1 ? ' two' : '') + '">' + window.PE_bodyMini(views, m.muscles, m.name + ' works the ' + m.works.toLowerCase()) +
-        '<span class="mx-views">' + views.map(function (v) { return v === 'front' ? 'Front' : 'Back'; }).join(' · ') + '</span></div>' +
-        '<div class="mx-text"><h3>' + esc(m.name) + '</h3><p class="mx-works">' + esc(where) + '</p>' + stepsHtml(m.id) + '</div></article>';
+      var where = m.muscles.map(function (id) { var x = muscleById(id); return x.name + ' (#' + x.n + ')'; }).join(' and ');
+      return '<article class="mx-card"><div class="mx-fig">' + (PE.machineArt[m.id] || '') + '</div>' +
+        '<div class="mx-text"><h3>' + esc(m.name) + '</h3><p class="mx-works">Works: ' + esc(where) + '</p>' + stepsHtml(m.id) + '</div></article>';
     }).join('');
     $('#machine-list').innerHTML = PE.machines.map(function (m) {
       return '<button type="button" data-machine="' + m.id + '">' + esc(m.name) + '</button>';

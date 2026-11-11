@@ -97,22 +97,6 @@
     return html + shapesHtml + badges + '</g>';
   }
 
-  // A small copy of the figure for one or both views, with the given muscles in red.
-  window.PE_bodyMini = function (views, lit, label) {
-    var out = '<svg viewBox="0 0 ' + (160 * views.length) + ' 430" class="mini-body" role="img" aria-label="' + label + '">';
-    views.forEach(function (view, i) {
-      var cx = 80 + 160 * i;
-      var shapes = '<ellipse cx="0" cy="24" rx="17" ry="23"/>' + SILHOUETTE.map(function (d) { return '<path d="' + d + '"/>'; }).join('');
-      out += '<g transform="translate(' + cx + ' 4)"><g class="body-line">' + shapes + '</g><g class="body-fill">' + shapes + '</g>' +
-        paths(DETAILS[view], 'body-detail');
-      MUSCLES[view].forEach(function (m) {
-        out += '<g class="m' + (lit.indexOf(m.id) > -1 ? ' is-on' : '') + '">' + paths(m.paths, 'm-shape') + '</g>';
-      });
-      out += '</g>';
-    });
-    return out + '</svg>';
-  };
-
   window.PE_buildBody = function (target) {
     var numbers = {};
     PE.muscles.forEach(function (m) { numbers[m.id] = m.n; });
