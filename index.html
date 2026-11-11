@@ -33,7 +33,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="./css/style.css?v=2.4">
+<link rel="stylesheet" href="./css/style.css?v=2.5">
 </head>
 <body>
 
@@ -545,6 +545,14 @@ try {
       <div class="map-panel" id="map-panel" aria-live="polite"></div>
     </div>
 
+    <div class="block" id="u4-machines">
+      <h2>Machine diagrams</h2>
+      <div>
+        <p class="hint">Red shows the muscle each machine works. The faded limb is where the move starts and the arrow shows which way it goes.</p>
+        <div class="mx-grid" id="mx-grid"></div>
+      </div>
+    </div>
+
     <div class="block" id="u4-key">
       <h2>Chart key</h2>
       <div>
@@ -998,6 +1006,14 @@ try {
     <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
     <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
 
+    <article class="patch" id="patch-2-5">
+      <header class="patch-head"><h2>Version 2.5</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
+      <h3>New</h3>
+      <ul>
+        <li><strong>Machine diagrams:</strong> a drawing of each class machine (leg curl, chest press, shoulder press, arm curl, leg extension and leg press) showing how it moves, with the muscle it works in red. They're in 04 Muscles &amp; Machines, and one pops up when you pick a machine in the Machine matcher.</li>
+      </ul>
+    </article>
+
     <article class="patch" id="patch-2-4">
       <header class="patch-head"><h2>Version 2.4</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
       <h3>New</h3>
@@ -1198,9 +1214,10 @@ try {
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./js/data.js?v=2.4"></script>
-<script src="./js/simple.js?v=2.4"></script>
-<script src="./js/body.js?v=2.4"></script>
-<script src="./js/main.js?v=2.4"></script>
+<script src="./js/data.js?v=2.5"></script>
+<script src="./js/simple.js?v=2.5"></script>
+<script src="./js/body.js?v=2.5"></script>
+<script src="./js/machines.js?v=2.5"></script>
+<script src="./js/main.js?v=2.5"></script>
 </body>
 </html>

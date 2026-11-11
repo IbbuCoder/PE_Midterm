@@ -171,7 +171,7 @@
   /* ---------- Welcome screen and patch notes ---------- */
 
   // Bump this when a new entry goes at the top of the What's new page.
-  var LATEST = { version: '2.4', note: 'Version 2.4: a 40 question mock quiz with a 45 minute clock, right on the Test page.' };
+  var LATEST = { version: '2.5', note: 'Version 2.5: diagrams of every class machine, with the muscle it works in red.' };
 
   // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
   function openDialog(box) {
@@ -1174,9 +1174,11 @@
         panel.innerHTML = '<p class="panel-empty">Pick a machine to see what it works.</p>';
       } else {
         panel.innerHTML =
+          '<div class="panel-mx"><div>' +
           '<div class="panel-name">' + esc(map.machine.name) + '</div>' +
           '<p class="panel-row"><strong>Works:</strong> ' + esc(map.machine.works) + '</p>' +
-          '<p class="panel-view">Muscle ' + map.machine.muscles.map(function (id) { return 'number ' + muscleById(id).n; }).join(' and ') + ' on the chart</p>';
+          '<p class="panel-view">Muscle ' + map.machine.muscles.map(function (id) { return 'number ' + muscleById(id).n; }).join(' and ') + ' on the chart</p></div>' +
+          (PE.machineArt[map.machine.id] || '') + '</div>';
       }
     } else {
       renderQuizPanel(panel);
@@ -1349,6 +1351,11 @@
   function buildMap() {
     window.PE_buildBody($('#figure'));
 
+    $('#mx-grid').innerHTML = PE.machines.map(function (m) {
+      return '<figure class="mx-card">' + (PE.machineArt[m.id] || '') +
+        '<figcaption><b>' + esc(m.name) + '</b><span>' + esc(m.works) + '</span>' +
+        '<span class="mx-how">' + esc(PE.machineHow[m.id] || '') + '</span></figcaption></figure>';
+    }).join('');
     $('#machine-list').innerHTML = PE.machines.map(function (m) {
       return '<button type="button" data-machine="' + m.id + '">' + esc(m.name) + '</button>';
     }).join('');
