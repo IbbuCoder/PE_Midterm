@@ -50,6 +50,7 @@ try {
   <symbol id="t-settings" viewBox="0 0 24 24"><path d="M3 7h10M17 7h4M3 17h4M11 17h10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 4h4v6h-4zM7 14h4v6H7z" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
   <symbol id="t-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="19" cy="12" r="2.2" fill="currentColor"/></symbol>
   <symbol id="i-speak" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 010 7M18.500 6a8.500 8.500 0 010 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-feedback" viewBox="0 0 24 24"><path d="M4 4h16v12H9l-5 4z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 7.5v4M12 13.2v.3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.500" cy="10.500" r="6.500" fill="none" stroke="currentColor" stroke-width="2.400"/><path d="M15.500 15.500L21 21" fill="none" stroke="currentColor" stroke-width="2.400"/></symbol>
   <symbol id="i-hydro" viewBox="0 0 48 48">
     <path d="M6 8v34h36V8" fill="none" stroke="currentColor" stroke-width="2.5"/>
@@ -100,7 +101,9 @@ try {
       <span class="nav-sep" aria-hidden="true"></span>
       <a href="#settings">Settings</a>
       <a href="#updates">What's new</a>
+      <a href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener">Feedback</a>
     </nav>
+    <a class="icon-btn" id="feedback-btn" href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener" aria-label="Send feedback or report a problem (Google Form)" title="Send feedback or report a problem"><svg aria-hidden="true"><use href="#i-feedback"></use></svg></a>
     <button type="button" class="icon-btn" id="search-btn" aria-label="Ask a question or search the notes"><svg aria-hidden="true"><use href="#i-search"></use></svg></button>
     <button type="button" class="dumb-btn" id="dumb-btn" aria-pressed="false">Simple words</button>
     <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="nav">Menu</button>
@@ -129,6 +132,7 @@ try {
       <a class="big-link" href="#match"><strong>Matching game</strong><span id="home-match"></span></a>
     </div>
     <a class="whats-new" href="#updates"><b>New</b> <span id="home-news"></span></a>
+    <a class="feedback-bar" href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener"><b>Problem or idea?</b> <span>Report a bug, a wrong answer or a complaint. Send feedback (Google Form)</span></a>
     <button type="button" class="link-btn clear-all" id="clear-all">Clear all my progress</button>
   </div>
 </section>
@@ -919,6 +923,8 @@ try {
   <div class="wrap narrow">
     <header class="unit-head"><h1 tabindex="-1">More</h1></header>
     <nav class="more-list" aria-label="More pages">
+      <a class="more-feedback" href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener"><b>Send feedback</b><span>Report a problem, a wrong answer, a complaint or an idea (Google Form)</span></a>
+      <a href="#saved"><b>Saved</b><span>Questions and passages you saved for later</span></a>
       <a href="#weak"><b>Weak spots</b><span>What to study next, based on your misses</span></a>
       <a href="#last"><b>Last look</b><span>Formulas, the muscle chart and your misses on one page</span></a>
       <a href="#drills"><b>Formula drills</b><span>Practice the heart rate, 1 Rep Max and body fat math</span></a>
@@ -927,8 +933,16 @@ try {
       <a href="#sheet"><b>Review sheet</b><span>Every flashcard on a few printable pages</span></a>
       <a href="#settings"><b>Settings</b><span>Theme, colors, text size and more</span></a>
       <a href="#updates"><b>What's new</b><span>Patch notes</span></a>
-      <a href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener"><b>Send feedback</b><span>Questions or ideas for the app (Google Form)</span></a>
     </nav>
+  </div>
+</section>
+
+<!-- SAVED -->
+<section class="view" id="view-saved" data-title="Saved">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">Saved</h1></header>
+    <p class="note">Questions you saved during a test and passages you saved from the notes. They stay on this device, even if you clear your progress.</p>
+    <div id="saved-root"></div>
   </div>
 </section>
 
@@ -980,6 +994,21 @@ try {
   <div class="wrap narrow">
     <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
     <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
+
+    <article class="patch" id="patch-2-1">
+      <header class="patch-head"><h2>Version 2.1</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
+      <h3>New</h3>
+      <ul>
+        <li><strong>Skip a question:</strong> tap Skip for now during a test and it comes back at the end.</li>
+        <li><strong>Save a question:</strong> tap Save question to keep it. Practice your saved questions from the Practice test page or More, Saved.</li>
+        <li><strong>Text evidence:</strong> stuck? Tap I don't know: show evidence to see the line from the notes that backs up the answer, then answer it yourself. It is turned off in the Mock midterm.</li>
+        <li><strong>Saved passages:</strong> select any text in a unit's notes and tap Save passage. You can also save the text evidence from a question. Find them all under More, Saved.</li>
+      </ul>
+      <h3>Changed</h3>
+      <ul>
+        <li><strong>Feedback is easier to find:</strong> there's a button in the top bar on every page, and it's also on Home, at the top of More, in the menu and under every test answer, so you can report a wrong answer right away.</li>
+      </ul>
+    </article>
 
     <article class="patch" id="patch-2-0">
       <header class="patch-head"><h2>Version 2.0</h2><time datetime="2026-11-10">Nov 10, 2026</time><span class="patch-tag">Final</span></header>

@@ -171,7 +171,7 @@
   /* ---------- Welcome screen and patch notes ---------- */
 
   // Bump this when a new entry goes at the top of the What's new page.
-  var LATEST = { version: '2.0', note: 'Version 2.0, the final version: a study plan, formula drills, a mock midterm, a matching game and more.' };
+  var LATEST = { version: '2.1', note: 'Version 2.1: skip and save test questions, text evidence when you are stuck, and saved passages.' };
 
   // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
   function openDialog(box) {
@@ -389,9 +389,10 @@
       location.hash = 'flashcards';
     }, 15);
     page('Daily goal', 'Setting', 'goal daily target per day how many', function () { location.hash = 'settings'; });
-    page('Send feedback', 'Page', 'feedback idea ideas suggestion suggest recommend question bug report form contact', function () {
+    page('Send feedback', 'Page', 'feedback idea ideas suggestion suggest recommend question bug report form contact complaint complain complaints problem issue wrong broken google form help', function () {
       window.open('https://forms.gle/6LFouHe3cwiY1r5t7', '_blank', 'noopener');
     });
+    page('Saved', 'Page', 'saved bookmarks bookmark saved questions passages highlights clips notes later', function () { location.hash = 'saved'; }, 15);
     page('Weak spots', 'Page', 'weak weakest missed misses review what to study next struggling', function () { location.hash = 'weak'; });
     page('What\'s new', 'Page', 'patch notes updates changelog changes version new features', function () { location.hash = 'updates'; });
     page('Welcome screen', 'Setting', 'welcome tour setup customize intro first', function () { openDialog($('#welcome')); });
@@ -765,7 +766,7 @@
       else a.removeAttribute('aria-current');
     });
     var tabId = /^u\d$/.test(id) ? 'units' : id;
-    if (['settings', 'updates', 'weak', 'more', 'sheet', 'last'].indexOf(id) > -1) tabId = 'more';
+    if (['settings', 'updates', 'weak', 'more', 'sheet', 'last', 'saved'].indexOf(id) > -1) tabId = 'more';
     if (id === 'drills' || id === 'match') tabId = 'test';
     if (id !== 'test') test.mockIntro = false;
     $$('.tabbar a').forEach(function (a) {
@@ -788,6 +789,7 @@
     if (id === 'drills') renderDrill(false);
     if (id === 'match') renderMatch();
     if (id === 'last') renderLast();
+    if (id === 'saved') renderSaved();
     stopSpeaking();
     window.scrollTo(0, 0);
     if (!first) {
@@ -2133,6 +2135,239 @@
     $('#home-study-note').textContent = note;
   }
 
+  /* ---------- Saved questions, passages and text evidence ---------- */
+
+  function savedQList() {
+    return saved.savedQs || [];
+  }
+
+  function isSavedQ(q) {
+    return savedQList().indexOf(q.q) > -1;
+  }
+
+  function toggleSavedQ(q) {
+    var list = savedQList().filter(function (text) { return text !== q.q; });
+    var adding = list.length === savedQList().length;
+    if (adding) list.push(q.q);
+    saved.savedQs = list;
+    save();
+    toast(adding ? 'Question saved' : 'Removed from saved');
+  }
+
+  function savedIds() {
+    var list = savedQList();
+    var ids = [];
+    PE.questions.forEach(function (q, i) {
+      if (list.indexOf(q.q) > -1) ids.push(i);
+    });
+    return ids;
+  }
+
+  function clipList() {
+    return saved.clips || [];
+  }
+
+  function addClip(clip) {
+    var list = clipList();
+    if (list.some(function (c) { return c.text === clip.text; })) {
+      toast('Already saved');
+      return;
+    }
+    clip.at = Date.now();
+    saved.clips = [clip].concat(list);
+    save();
+    toast('Passage saved. Find it under More, Saved');
+  }
+
+  var STOP = ('the a an and or of to in on for is are what which who whom how do does your you it its at by with be as that this ' +
+    'these those from into than then their they them can will was were has have had not no yes true false per each when why one ' +
+    'two all any more most some such our out about also only other there here been being get got make makes example called').split(' ');
+
+  function keyWords(s) {
+    return wordsOf(s).filter(function (w) { return w.length > 1 && STOP.indexOf(w) === -1 && !/^[.\-]+$/.test(w); });
+  }
+
+  function sameWord(a, b) {
+    if (a === b) return true;
+    if (a.length < 4 || b.length < 4) return false;
+    var n = Math.min(a.length, b.length, 6);
+    return a.slice(0, n) === b.slice(0, n) && Math.abs(a.length - b.length) <= 4;
+  }
+
+  function hasWord(words, w) {
+    return words.some(function (x) { return sameWord(x, w); });
+  }
+
+  // Finds the line in the unit notes that best backs up the answer.
+  function evidenceFor(q) {
+    var view = document.getElementById('view-u' + q.u);
+    if (!view) return null;
+    var answer = q.t === 'tf' ? [] : keyWords(q.c[q.a]);
+    var why = keyWords(q.why);
+    var ask = keyWords(q.q);
+    var best = null;
+    $$('.block li, .block p, .block tr, .block h3, .block figcaption, .block blockquote, .block dd, .block ul, .block ol, .tool li, .tool p, .tool tr, .tool figcaption', view).forEach(function (el) {
+      if (el.closest('.simple, [hidden], .jump, .hidden-note')) return;
+      var text = allText(el);
+      if (/^[UO]L$/.test(el.tagName)) {
+        if (el.closest('li')) return;
+        // A list reads as one line, with the label just above it.
+        text = $$(':scope > li', el).map(allText).join(', ');
+        var label = el.previousElementSibling;
+        if (label && !label.classList.contains('simple') && /^(P|H3)$/.test(label.tagName) && allText(label).length < 80) text = allText(label) + ': ' + text;
+      } else if (el.tagName === 'H3') {
+        var next = el.nextElementSibling;
+        if (next && !next.classList.contains('simple')) text += ': ' + allText(next);
+      }
+      if (text.length < 3) return;
+      var words = wordsOf(text);
+      var score = 0;
+      answer.forEach(function (w) { if (hasWord(words, w)) score += 3; });
+      why.forEach(function (w) { if (hasWord(words, w)) score += 2; });
+      ask.forEach(function (w) { if (hasWord(words, w)) score += 1; });
+      score = score / (1 + words.length / 60);
+      if (score > 0 && (!best || score > best.score)) best = { el: el, text: text, score: score };
+    });
+    if (!best) return null;
+    var sec = best.el.closest('.block, .tool');
+    var text = best.text;
+    return {
+      el: best.el, sec: sec, text: text, view: view.id.replace('view-', ''),
+      title: $('h2', sec).textContent, unit: view.dataset.title,
+      marks: answer.concat(why).map(function (w) { return { alts: [w] }; })
+    };
+  }
+
+  function goToEvidence(ev) {
+    location.hash = ev.view;
+    setTimeout(function () {
+      ev.el.scrollIntoView({ block: 'center' });
+      ev.el.classList.add('search-spot');
+      setTimeout(function () { ev.el.classList.remove('search-spot'); }, 2400);
+    }, 120);
+  }
+
+  function evidenceHtml(q) {
+    var ev = evidenceFor(q);
+    if (!ev) {
+      return '<div class="evidence"><b class="ev-label">Text evidence</b><p>No exact line in the notes for this one. The key idea: ' + esc(q.why) + '</p></div>';
+    }
+    return '<div class="evidence" aria-live="polite"><b class="ev-label">Text evidence</b>' +
+      '<blockquote>' + markText(ev.text, ev.marks) + '</blockquote>' +
+      '<span class="ev-src">From the notes: ' + esc(ev.unit) + ', ' + esc(ev.title) + '</span>' +
+      '<div class="ev-actions"><button type="button" class="link-btn" data-ev-open>Read it in the notes</button>' +
+      '<button type="button" class="link-btn" data-ev-save>Save this passage</button>' +
+      '<a class="link-btn" href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener">Something wrong? Tell us</a></div></div>';
+  }
+
+  // Select text in a unit's notes, then tap Save passage.
+  function buildClipper() {
+    var bar = document.createElement('button');
+    bar.type = 'button';
+    bar.className = 'clip-bar';
+    bar.id = 'clip-bar';
+    bar.hidden = true;
+    bar.textContent = 'Save passage';
+    document.body.appendChild(bar);
+    var pending = null;
+    var hideTimer = null;
+
+    function readSelection() {
+      var sel = window.getSelection();
+      if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+      var node = sel.getRangeAt(0).commonAncestorContainer;
+      var el = node.nodeType === 1 ? node : node.parentNode;
+      var view = el.closest('.view.unit');
+      if (!view) return null;
+      var sec = el.closest('.block, .tool') || (sel.anchorNode && sel.anchorNode.parentNode && sel.anchorNode.parentNode.closest('.block, .tool'));
+      var text = sel.toString().replace(/\s+/g, ' ').trim();
+      if (text.length < 3) return null;
+      if (text.length > 1200) text = text.slice(0, 1200) + '...';
+      return {
+        text: text, view: view.id.replace('view-', ''), unit: view.dataset.title,
+        sec: sec ? sec.id : '', title: sec && $('h2', sec) ? $('h2', sec).textContent : ''
+      };
+    }
+
+    document.addEventListener('selectionchange', function () {
+      var clip = readSelection();
+      clearTimeout(hideTimer);
+      if (clip) {
+        pending = clip;
+        bar.hidden = false;
+      } else {
+        // Wait a moment, so tapping the button on a phone still counts.
+        hideTimer = setTimeout(function () { bar.hidden = true; pending = null; }, 400);
+      }
+    });
+    bar.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    bar.addEventListener('click', function () {
+      if (!pending) return;
+      addClip(pending);
+      pending = null;
+      bar.hidden = true;
+      var sel = window.getSelection();
+      if (sel) sel.removeAllRanges();
+    });
+    window.addEventListener('hashchange', function () { bar.hidden = true; pending = null; });
+  }
+
+  function timeAgo(ms) {
+    var d = new Date(ms);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function renderSaved() {
+    var root = $('#saved-root');
+    var ids = savedIds();
+    var clips = clipList();
+    root.innerHTML =
+      '<h2 class="t-section">Saved questions (' + ids.length + ')</h2>' +
+      (ids.length
+        ? '<div class="test-actions"><button type="button" class="btn solid" data-quick="saved">Practice saved questions</button></div>' +
+          '<ul class="saved-list">' + ids.map(function (id) {
+            var q = PE.questions[id];
+            return '<li><span class="saved-q">' + esc(q.q) + '</span>' +
+              '<details><summary>Show answer</summary><p>' + esc(q.c[q.a]) + '. ' + esc(q.why) + '</p></details>' +
+              '<div class="ev-actions"><span class="ev-src">' + esc(unitLabel(q.u)) + '</span>' +
+              '<button type="button" class="link-btn" data-unsave-q="' + id + '">Remove</button></div></li>';
+          }).join('') + '</ul>'
+        : '<p class="note">Nothing yet. Tap <b>Save question</b> during a practice test to keep a question here.</p>') +
+      '<h2 class="t-section">Saved passages (' + clips.length + ')</h2>' +
+      (clips.length
+        ? '<ul class="saved-list">' + clips.map(function (c, i) {
+            return '<li><blockquote>' + esc(c.text) + '</blockquote>' +
+              '<div class="ev-actions"><span class="ev-src">' + esc(c.unit || '') + (c.title ? ', ' + esc(c.title) : '') + ' · ' + esc(timeAgo(c.at)) + '</span>' +
+              (c.sec ? '<button type="button" class="link-btn" data-clip-open="' + i + '">Open in notes</button>' : '') +
+              '<button type="button" class="link-btn" data-clip-del="' + i + '">Remove</button></div></li>';
+          }).join('') + '</ul>'
+        : '<p class="note">Nothing yet. Select any text in a unit\'s notes and tap <b>Save passage</b>, or save the text evidence from a test question.</p>');
+  }
+
+  function buildSaved() {
+    $('#saved-root').addEventListener('click', function (e) {
+      var unq = e.target.closest('[data-unsave-q]');
+      if (unq) {
+        toggleSavedQ(PE.questions[Number(unq.dataset.unsaveQ)]);
+        renderSaved();
+      }
+      var del = e.target.closest('[data-clip-del]');
+      if (del) {
+        var list = clipList().slice();
+        list.splice(Number(del.dataset.clipDel), 1);
+        saved.clips = list;
+        save();
+        renderSaved();
+      }
+      var open = e.target.closest('[data-clip-open]');
+      if (open) {
+        var c = clipList()[Number(open.dataset.clipOpen)];
+        var sec = c && document.getElementById(c.sec);
+        if (sec) goToSection(c.view, sec, keyWords(c.text).slice(0, 6).map(function (w) { return { alts: [w] }; }));
+      }
+    });
+  }
+
   /* ---------- Practice test ---------- */
 
   var test = { scope: 'all', run: null };
@@ -2204,6 +2439,7 @@
     if (scope === 'game') return 'Game Day';
     if (scope === 'mock') return 'Mock midterm';
     if (scope === 'study') return 'Study today';
+    if (scope === 'saved') return 'Saved questions';
     if (isMissScope(scope)) return 'Retry ' + unitOf(scope.slice(1)).num + ' ' + unitOf(scope.slice(1)).short + ' misses';
     if (isOneQuestion(scope)) return 'One question';
     var u = unitOf(scope);
@@ -2241,6 +2477,7 @@
     if (scope === 'missed') ids = missedIds();
     if (/^mu\d$/.test(scope)) ids = unitMisses(scope.slice(1));
     if (scope === 'daily') ids = dailyIds();
+    if (scope === 'saved') ids = savedIds();
     if (scope === 'mock') ids = PE.questions.map(function (q, i) { return i; });
     if (scope === 'game') ids = shuffle(PE.questions.map(function (q, i) { return i; })).slice(0, gameLength());
     if (scope === 'study') {
@@ -2265,6 +2502,7 @@
     var id = run.ids[run.pos];
     run.picked = null;
     run.shown = false;
+    run.evidence = false;
     if (isCardId(id)) return;
     var q = PE.questions[id];
     var idx = q.c.map(function (_, i) { return i; });
@@ -2274,6 +2512,8 @@
   function renderSetup(root) {
     var last = saved.test || {};
     var scopes = ['all'].concat(PE.units.map(function (u) { return u.id; }));
+    if (savedIds().length) scopes.push('saved');
+    if (test.scope === 'saved' && !savedIds().length) test.scope = 'all';
     var run = test.run;
     var misses = missedIds().length;
     var toStudy = studyCount(studyPlan());
@@ -2305,7 +2545,7 @@
       '<ul class="scope-list">' + scopes.map(function (s) {
         return '<li><label><input type="radio" name="scope" value="' + s + '"' + (s === test.scope ? ' checked' : '') + '>' +
           '<span class="scope-name">' + esc(scopeName(s)) + '</span>' +
-          '<span class="scope-meta">' + pool(s).length + ' questions' + (last[s] ? ', last ' + last[s].score + '/' + last[s].total : '') + '</span></label></li>';
+          '<span class="scope-meta">' + (s === 'saved' ? savedIds().length : pool(s).length) + ' questions' + (last[s] ? ', last ' + last[s].score + '/' + last[s].total : '') + '</span></label></li>';
       }).join('') + '</ul>' +
       '<button type="button" class="btn solid" data-start>Start test</button>';
   }
@@ -2327,9 +2567,17 @@
         else if (answered && i === run.picked) cls += ' wrong';
         return '<button type="button" class="' + cls + '" data-pick="' + i + '"' + (answered ? ' disabled' : '') + '>' + esc(q.c[i]) + '</button>';
       }).join('') + '</div>' +
+      (run.skips && run.skips[run.ids[run.pos]] && !answered ? '<p class="t-back">You skipped this one earlier.</p>' : '') +
+      '<div class="q-tools">' +
+        (!answered && run.pos < run.ids.length - 1 ? '<button type="button" class="btn ghost" data-skip>Skip for now</button>' : '') +
+        '<button type="button" class="btn ghost" data-save-q aria-pressed="' + isSavedQ(q) + '">' + (isSavedQ(q) ? 'Saved' : 'Save question') + '</button>' +
+        (run.scope !== 'mock' && !run.evidence ? '<button type="button" class="btn ghost" data-evidence>' + (answered ? 'Show text evidence' : 'I don\'t know: show evidence') + '</button>' : '') +
+      '</div>' +
+      (run.evidence ? evidenceHtml(q) : '') +
       (answered
         ? '<p class="t-why' + (isRight ? '' : ' bad') + '" aria-live="polite"><strong>' + (isRight ? 'Correct' : 'Answer: ' + esc(q.c[q.a])) + '</strong>' + esc(q.why) +
           '<span class="t-back">' + esc(backText(run.ids[run.pos])) + '</span></p>' +
+          '<div class="test-actions"><a class="link-btn" href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener">Think this answer is wrong? Send feedback</a></div>' +
           '<div class="test-actions"><button type="button" class="btn solid" data-next>' + (run.pos + 1 === run.ids.length ? 'See score' : 'Next question') + '</button></div>'
         : '') +
       '<div class="test-actions"><button type="button" class="link-btn" data-quit>' +
@@ -2414,7 +2662,7 @@
     if (run.scope === 'daily') {
       markDaily();
       toast('Daily 10 done. Streak: ' + saved.streak.count);
-    } else if (!isMissScope(run.scope) && run.scope !== 'study' && !isOneQuestion(run.scope)) {
+    } else if (!isMissScope(run.scope) && run.scope !== 'study' && run.scope !== 'saved' && !isOneQuestion(run.scope)) {
       saved.test = saved.test || {};
       saved.test[run.scope] = { score: run.right, total: run.ids.length };
       // Questions nobody got to answer don't pull the unit scores down.
@@ -2917,6 +3165,31 @@
         keepRun();
         if (run.exam) nextQuestion(run);
         else renderTest();
+      } else if (t.closest('[data-skip]')) {
+        var skipped = run.ids.splice(run.pos, 1)[0];
+        run.ids.push(skipped);
+        run.skips = run.skips || {};
+        run.skips[skipped] = true;
+        prepareQuestion();
+        keepRun();
+        renderTest();
+        toast('Skipped. It comes back at the end');
+        window.scrollTo(0, 0);
+      } else if (t.closest('[data-save-q]')) {
+        toggleSavedQ(PE.questions[run.ids[run.pos]]);
+        renderTest();
+      } else if (t.closest('[data-evidence]')) {
+        run.evidence = true;
+        keepRun();
+        renderTest();
+        var box = $('.evidence', root);
+        if (box) box.scrollIntoView({ block: 'nearest' });
+      } else if (t.closest('[data-ev-open]')) {
+        var ev = evidenceFor(PE.questions[run.ids[run.pos]]);
+        if (ev) { test.setup = true; goToEvidence(ev); }
+      } else if (t.closest('[data-ev-save]')) {
+        var found = evidenceFor(PE.questions[run.ids[run.pos]]);
+        if (found) addClip({ text: found.text, view: found.view, unit: found.unit, sec: found.sec.id, title: found.title });
       } else if (t.closest('[data-show]')) {
         run.shown = true;
         keepRun();
@@ -2962,6 +3235,8 @@
     seedReview();
     buildFlashcards();
     buildTest();
+    buildSaved();
+    buildClipper();
     buildDrill();
     buildMatch();
     startClock();
@@ -2978,7 +3253,7 @@
 
     $('#clear-all').addEventListener('click', function () {
       if (!window.confirm('Clear all your scores, flashcard marks and misses on this device?')) return;
-      saved = { settings: settings };
+      saved = { settings: settings, savedQs: saved.savedQs, clips: saved.clips };
       save();
       toast('Progress cleared');
       test.run = null;
