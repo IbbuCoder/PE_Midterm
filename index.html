@@ -33,7 +33,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="./css/style.css?v=2.4">
+<link rel="stylesheet" href="./css/style.css?v=2.6">
 </head>
 <body>
 
@@ -101,6 +101,7 @@ try {
       <a href="#weak">Weak spots</a>
       <a href="#saved">Bookmarks</a>
       <span class="nav-sep" aria-hidden="true"></span>
+      <a href="#stats">Stats</a>
       <a href="#settings">Settings</a>
       <a href="https://forms.gle/6LFouHe3cwiY1r5t7" target="_blank" rel="noopener">Feedback</a>
     </nav>
@@ -934,9 +935,19 @@ try {
       <a href="#match"><b>Matching game</b><span>Match terms to their meanings on the clock</span></a>
       <a href="#test" data-mock><b>Mock quiz</b><span>40 questions, 45 minutes, answers at the end</span></a>
       <a href="#sheet"><b>Review sheet</b><span>Every flashcard on a few printable pages</span></a>
+      <a href="#stats"><b>Stats</b><span>How many people are studying with this site</span></a>
       <a href="#settings"><b>Settings</b><span>Theme, colors, text size and more</span></a>
       <a href="#updates"><b>What's new</b><span>Patch notes</span></a>
     </nav>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="view" id="view-stats" data-title="Stats">
+  <div class="wrap narrow">
+    <header class="unit-head"><h1 tabindex="-1">Stats</h1></header>
+    <p class="note">How the site is being used, for everyone. Only totals are shown: no names, and nothing that points to one person.</p>
+    <div id="stats-root"></div>
   </div>
 </section>
 
@@ -997,6 +1008,14 @@ try {
   <div class="wrap narrow">
     <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
     <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
+
+    <article class="patch" id="patch-2-5">
+      <header class="patch-head"><h2>Version 2.5</h2><time datetime="2026-11-12">Nov 12, 2026</time></header>
+      <h3>New</h3>
+      <ul>
+        <li><strong>Stats page:</strong> see how many people are studying, the most used pages and the average test score. It's under More. The site now counts visits anonymously. Turn on "Do Not Track" in your browser to opt out.</li>
+      </ul>
+    </article>
 
     <article class="patch" id="patch-2-4">
       <header class="patch-head"><h2>Version 2.4</h2><time datetime="2026-11-11">Nov 11, 2026</time></header>
@@ -1198,9 +1217,10 @@ try {
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./js/data.js?v=2.4"></script>
-<script src="./js/simple.js?v=2.4"></script>
-<script src="./js/body.js?v=2.4"></script>
-<script src="./js/main.js?v=2.4"></script>
+<script src="./js/analytics.js?v=2.6"></script>
+<script src="./js/data.js?v=2.6"></script>
+<script src="./js/simple.js?v=2.6"></script>
+<script src="./js/body.js?v=2.6"></script>
+<script src="./js/main.js?v=2.6"></script>
 </body>
 </html>

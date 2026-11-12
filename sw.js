@@ -1,7 +1,7 @@
 // Keeps a copy of the site so it opens with bad signal.
 // It always tries the network first, so new uploads show up on their own.
-var CACHE = 'pe-midterm-v8';
-var FILES = ['./', './index.html', './css/style.css', './js/data.js', './js/simple.js', './js/body.js', './js/main.js', './img/favicon.svg'];
+var CACHE = 'pe-midterm-v10';
+var FILES = ['./', './index.html', './css/style.css', './js/data.js', './js/simple.js', './js/body.js', './js/main.js', './js/analytics.js', './img/favicon.svg'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(FILES); }));
