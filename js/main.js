@@ -393,7 +393,7 @@
     page('Study today', 'Page', 'review due schedule spaced repetition what to study', quick('study'), 15);
     page('Daily 10', 'Page', 'daily streak quick', quick('daily'));
     page('Game Day', 'Page', 'mock exam final', quick('game'));
-    page('Mock quiz', 'Page', 'mock quiz midterm exam timed timer 45 minutes 40 questions full practice clock test', openMockIntro, 15);
+    page('Mock quiz', 'Page', 'mock quiz midterm exam timed timer 15 minutes 40 questions full practice clock test', openMockIntro, 15);
     page('Formula drills', 'Page', 'formula formulas math drill practice problems numbers max heart rate 1 rep max body fat weight calculate', function () { location.hash = 'drills'; }, 15);
     page('Matching game', 'Page', 'match matching game pairs terms definitions timed fun', function () { location.hash = 'match'; }, 15);
     page('Last look', 'Page', 'last look test day final review formulas missed muscle chart cram', function () { location.hash = 'last'; }, 15);
@@ -3158,7 +3158,7 @@
 
   /* ---------- Mock midterm ---------- */
 
-  var MOCK_MINUTES = 45;
+  var MOCK_MINUTES = 15;
   var MOCK_QUESTIONS = 40;
 
   function mockCount() {
