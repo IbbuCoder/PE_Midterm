@@ -819,7 +819,7 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .stat-tile span { color: var(--mute); font-size: 15px; }
 .stat-head { margin: 28px 0 10px; font: 700 24px/1.1 var(--head); }
 .stat-head small { color: var(--mute); font-family: inherit; font-size: 15px; font-weight: 400; }
-.stat-days { display: flex; align-items: flex-end; gap: 4px; height: 110px; border-bottom: 1px solid var(--rule); }
+.stat-days { display: flex; align-items: flex-end; gap: 2px; height: 110px; border-bottom: 1px solid var(--rule); }
 .stat-days span { flex: 1; height: 100%; display: flex; align-items: flex-end; }
 .stat-days i { display: block; width: 100%; background: var(--accent); }
 .stat-axis { display: flex; justify-content: space-between; margin: 6px 0 0; font-size: 14px; }
