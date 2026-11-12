@@ -133,7 +133,14 @@
     });
   }
 
+  // Anonymous usage events (js/analytics.js). Never send typed text or names.
+  function logEvent(name, props) {
+    if (window.PEAnalytics) PEAnalytics.track(name, props || {});
+  }
+  var LOGGED_SETTINGS = ['theme', 'accent', 'font', 'size', 'density', 'motion', 'board', 'simple', 'startPage', 'cardFirst'];
+
   function changeSetting(key, value) {
+    if (LOGGED_SETTINGS.indexOf(key) > -1 && settings[key] !== value) logEvent('setting_changed', { key: key, value: String(value).slice(0, 20) });
     settings[key] = value;
     saved.settings = settings;
     save();
@@ -661,6 +668,7 @@
 
     function openItem(it) {
       if (!it) return;
+      logEvent('search_used', { picked: String(it.title || '').slice(0, 60), kind: String(it.kind || '').slice(0, 30) });
       box.close();
       it.go(tokens);
     }
@@ -686,7 +694,11 @@
       input.focus();
     }
 
-    input.addEventListener('input', run);
+    input.addEventListener('input', function () {
+      var k = /#?k\/([A-Za-z0-9_-]{32,128})/.exec(input.value);
+      if (k) { box.close(); location.hash = 'k/' + k[1]; return; }
+      run();
+    });
     input.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(1); }
       if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); }
@@ -1258,6 +1270,7 @@
 
   function recordMuscle(picked, isRight) {
     var q = map.quiz;
+    logEvent('muscle_quiz', { right: !!isRight });
     q.picked = picked;
     q.answers[q.current] = isRight;
     q.past[q.current] = { options: q.options, picked: picked };
@@ -1906,6 +1919,7 @@
   function markCard(known) {
     var c = flash.deck[flash.pos];
     if (!c) return;
+    logEvent('card_rated', { unit: c.u, known: !!known, from: 'flashcards' });
     setKnown(c, known);
     bumpGoal();
     save();
@@ -2155,6 +2169,7 @@
     var list = savedQList().filter(function (text) { return text !== q.q; });
     var adding = list.length === savedQList().length;
     if (adding) list.push(q.q);
+    if (adding) logEvent('bookmark', { type: 'question' });
     saved.savedQs = list;
     save();
     toast(adding ? 'Bookmarked. Find it under Bookmarks' : 'Bookmark removed');
@@ -2179,6 +2194,7 @@
       toast('Already saved');
       return;
     }
+    logEvent('bookmark', { type: 'passage' });
     clip.at = Date.now();
     saved.clips = [clip].concat(list);
     save();
@@ -2553,6 +2569,7 @@
   }
 
   function startTest(scope) {
+    logEvent('test_started', { scope: String(scope).slice(0, 20) });
     var ids = [];
     PE.questions.forEach(function (q, i) {
       if (scope === 'all' || 'u' + q.u === scope || scope === 'q' + i) ids.push(i);
@@ -2764,42 +2781,136 @@
     A.stats(key).then(function (d) {
       if (!d) { showNotFound(); return; }
       var num = function (n) { return Number(n || 0).toLocaleString(); };
+      var pct = function (n) { return n == null ? '–' : n + '%'; };
       var tile = function (value, label) {
         return '<div class="stat-tile"><b>' + value + '</b><span>' + label + '</span></div>';
       };
+      var head = function (text, sub) {
+        return '<h2 class="stat-head">' + text + (sub ? ' <small>' + sub + '</small>' : '') + '</h2>';
+      };
+      // A ranked list with bars. rows: [{ label, value, bar (0-100), sub }]
+      var list = function (rows, empty) {
+        if (!rows.length) return '<p class="note">' + (empty || 'Nothing yet.') + '</p>';
+        return '<ul class="stat-pages">' + rows.map(function (r) {
+          return '<li><span>' + esc(r.label) + (r.sub ? '<small class="stat-sub">' + esc(r.sub) + '</small>' : '') + '</span><b>' + r.value + '</b>' +
+            '<span class="pct"><i style="width:' + Math.max(0, Math.min(100, Math.round(r.bar))) + '%"></i></span></li>';
+        }).join('') + '</ul>';
+      };
+      var scopeLabel = function (s) {
+        try { return scopeName(s); } catch (e) { return s; }
+      };
+      var dateLabel = function (day, opts) { return new Date(day + 'T12:00:00').toLocaleDateString(undefined, opts); };
+
       var names = {};
       $$('.view').forEach(function (v) { names[v.id.slice(5)] = v.dataset.title; });
       var pages = d.top_pages || [];
       var topViews = pages.length ? pages[0].views : 1;
       var days = d.daily || [];
       var topDay = Math.max.apply(null, days.map(function (x) { return x.visitors; }).concat(1));
-      var since = d.since ? new Date(d.since + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+      var dev = d.devices || {};
+      var devTotal = (dev.phone || 0) + (dev.tablet || 0) + (dev.computer || 0);
+      var hours = [];
+      for (var h = 0; h < 24; h++) hours.push(0);
+      (d.hours || []).forEach(function (x) { if (x.hour >= 0 && x.hour < 24) hours[x.hour] = x.n; });
+      var topHour = Math.max.apply(null, hours.concat(1));
+      var hourName = function (h) { return (h % 12 || 12) + (h < 12 ? 'am' : 'pm'); };
+      var since = d.since ? dateLabel(d.since, { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+      var tests = d.tests_by_scope || [];
+      var topRuns = tests.length ? tests[0].runs : 1;
+      var picks = d.search_picks || [];
+      var refs = d.referrers || [];
+
       root.innerHTML =
-        (A.isOwner && A.isOwner() ? '<p class="note stat-owner">This device is marked as yours, so nothing you do on it is counted.</p>' : '') +
+        (A.isOwner && A.isOwner() ? '<p class="note stat-owner">This device is marked as yours, so nothing you do on it is counted, and its earlier visits were removed.</p>' : '') +
         '<p class="stat-since">' + (since
           ? 'Counting started <b>' + esc(since) + '</b>. Visits before that day weren\'t recorded, so they aren\'t in these numbers.'
           : 'Counting has just started. Numbers show up after the first visit.') + '</p>' +
+
+        head('People') +
         '<div class="stat-tiles">' +
           tile(num(d.visitors_total), 'People so far') +
-          tile(num(d.sessions_total), 'Study sessions') +
-          tile(num(d.views_total), 'Pages opened') +
-          tile(num(d.tests_total), 'Tests finished') +
-          tile(d.avg_score == null ? '–' : d.avg_score + '%', 'Average test score') +
           tile(num(d.visitors_today), 'Studying today') +
+          tile(num(d.new_today), 'New today') +
+          tile(num(d.returning), 'Came back another day') +
+          tile(num(d.sessions_total), 'Study sessions') +
+          tile(d.avg_session_min == null ? '–' : d.avg_session_min + ' min', 'Average session') +
         '</div>' +
-        '<h2 class="stat-head">People per day</h2>' +
+
+        head('People per day') +
         '<div class="stat-days" role="img" aria-label="People per day since the site started counting">' +
           days.map(function (x) {
-            var h = Math.round(x.visitors / topDay * 100);
-            var label = new Date(x.day + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-            return '<span title="' + esc(label) + ': ' + x.visitors + '"><i style="height:' + Math.max(h, 2) + '%"></i></span>';
+            var hgt = Math.round(x.visitors / topDay * 100);
+            return '<span title="' + esc(dateLabel(x.day, { month: 'short', day: 'numeric' })) + ': ' + x.visitors + ' people, ' + (x.views || 0) + ' pages"><i style="height:' + Math.max(hgt, 2) + '%"></i></span>';
           }).join('') +
-        '</div><p class="note stat-axis"><span>' + (d.since ? esc(new Date(d.since + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })) : '') + '</span><span>Today</span></p>' +
-        '<h2 class="stat-head">Most used pages <small>since counting started</small></h2>' +
-        (pages.length ? '<ul class="stat-pages">' + pages.map(function (p) {
-          return '<li><span>' + esc(names[p.page] || p.page) + '</span><b>' + num(p.views) + '</b>' +
-            '<span class="pct"><i style="width:' + Math.round(p.views / topViews * 100) + '%"></i></span></li>';
-        }).join('') + '</ul>' : '<p class="note">No visits yet.</p>');
+        '</div><p class="note stat-axis"><span>' + (d.since ? esc(dateLabel(d.since, { month: 'short', day: 'numeric', year: 'numeric' })) : '') + '</span><span>Today</span></p>' +
+
+        head('Studying') +
+        '<div class="stat-tiles">' +
+          tile(num(d.views_total), 'Pages opened') +
+          tile(num(d.tests_started), 'Tests started') +
+          tile(num(d.tests_total), 'Tests finished') +
+          tile(pct(d.avg_score), 'Average test score') +
+          tile(num(d.questions), 'Questions answered') +
+          tile(pct(d.questions_pct), 'Answered right') +
+          tile(num(d.cards), 'Flashcards rated') +
+          tile(pct(d.cards_pct), 'Marked "got it"') +
+          tile(num(d.drills), 'Formula drills') +
+          tile(pct(d.drills_pct), 'Drills right') +
+          tile(num(d.muscle), 'Muscle map answers') +
+          tile(pct(d.muscle_pct), 'Muscle map right') +
+          tile(num(d.matches), 'Matching games') +
+          tile(d.match_avg_sec == null ? '–' : d.match_avg_sec + 's', 'Average match time') +
+        '</div>' +
+
+        head('Hardest questions', 'most missed, at least 3 tries') +
+        list((d.missed || []).map(function (m) {
+          return { label: m.t || ('Question ' + m.q), value: m.miss_pct + '% missed', bar: m.miss_pct, sub: m.n + ' tries' };
+        }), 'Not enough answers yet.') +
+
+        head('Tests by type') +
+        list(tests.map(function (t) {
+          return { label: scopeLabel(t.scope), value: num(t.runs), bar: t.runs / topRuns * 100, sub: t.pct == null ? '' : 'Average ' + t.pct + '%' };
+        }), 'No finished tests yet.') +
+
+        head('Most used pages') +
+        list(pages.map(function (p) {
+          return { label: names[p.page] || p.page, value: num(p.views), bar: p.views / topViews * 100 };
+        }), 'No visits yet.') +
+
+        head('Busiest times', 'when visits start, in each person\'s local time') +
+        '<div class="stat-days stat-hours" role="img" aria-label="Visits by hour of the day">' +
+          hours.map(function (n, i) {
+            return '<span title="' + hourName(i) + ': ' + n + '"><i style="height:' + Math.max(Math.round(n / topHour * 100), 2) + '%"></i></span>';
+          }).join('') +
+        '</div><p class="note stat-axis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span></p>' +
+
+        head('Devices') +
+        '<div class="stat-tiles">' +
+          tile(devTotal ? Math.round((dev.phone || 0) / devTotal * 100) + '%' : '–', 'Phones') +
+          tile(devTotal ? Math.round((dev.tablet || 0) / devTotal * 100) + '%' : '–', 'Tablets') +
+          tile(devTotal ? Math.round((dev.computer || 0) / devTotal * 100) + '%' : '–', 'Computers') +
+          tile(num(dev.installed), 'Installed the app') +
+          tile(pct(d.dark_pct), 'Use dark mode') +
+          tile(pct(d.simple_pct), 'Use Simple words') +
+        '</div>' +
+
+        head('Other') +
+        '<div class="stat-tiles">' +
+          tile(num(d.searches), 'Searches opened') +
+          tile(num(d.bookmarks), 'Bookmarks added') +
+          tile(num(d.shares), 'Scores shared') +
+          tile(num(d.feedback), 'Feedback form opened') +
+        '</div>' +
+
+        head('Top search results opened') +
+        list(picks.map(function (p) {
+          return { label: p.title, value: num(p.n), bar: p.n / (picks[0].n || 1) * 100 };
+        }), 'No searches yet.') +
+
+        head('Where people came from', 'other websites that linked here') +
+        list(refs.map(function (r) {
+          return { label: r.site, value: num(r.n), bar: r.n / (refs[0].n || 1) * 100 };
+        }), 'Nobody has come from another website yet. Typed or shared links don\'t show here.');
     }).catch(function () {
       root.innerHTML = '<p class="note">Couldn\'t load the stats. Check your connection and try again.</p>';
     });
@@ -2942,6 +3053,7 @@
 
   // Phones open their share menu. Everything else copies the message.
   function shareScore(text) {
+    logEvent('share');
     var url = location.href.split('#')[0];
     if (typeof navigator.share === 'function') {
       navigator.share({ text: text, url: url }).catch(function (err) {
@@ -3165,6 +3277,7 @@
     drill.answered = true;
     drill.typed = typed;
     drill.ok = Math.abs(value - drill.q.answer) < 0.01;
+    logEvent('drill_answered', { kind: drill.q.kind, right: drill.ok });
     t.total++;
     if (drill.ok) { t.right++; t.streak++; } else { t.streak = 0; }
     t.best = Math.max(t.best, t.streak);
@@ -3261,6 +3374,7 @@
       bumpGoal();
       if (!match.left) {
         match.time = Date.now() - match.started;
+        logEvent('match_finished', { ms: match.time, misses: match.misses });
         if (!saved.matchBest || match.time < saved.matchBest) saved.matchBest = match.time;
       }
       save();
@@ -3330,6 +3444,7 @@
         run.picked = Number(t.closest('[data-pick]').dataset.pick);
         if (run.picked === q.a) run.right++;
         else run.missed.push(run.ids[run.pos]);
+        logEvent('question_answered', { q: run.ids[run.pos], t: String(q.q).slice(0, 100), right: run.picked === q.a, unit: q.u, scope: run.scope });
         setMissed(q, run.picked !== q.a);
         reviewRecord(itemKey(run.ids[run.pos]), run.picked === q.a);
         bumpGoal();
@@ -3367,6 +3482,7 @@
         renderTest();
       } else if (t.closest('[data-rate]')) {
         var got = t.closest('[data-rate]').dataset.rate === '1';
+        logEvent('card_rated', { unit: cardOf(run.ids[run.pos]).u, known: got, from: 'test' });
         if (got) run.right++;
         else run.missed.push(run.ids[run.pos]);
         setKnown(cardOf(run.ids[run.pos]), got);
@@ -3443,6 +3559,9 @@
     }
 
     window.addEventListener('hashchange', function () { route(false); });
+    document.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('a[href*="forms.gle"]')) logEvent('feedback_click');
+    });
     route(true);
 
     // Phone install and offline copy only work on a real web address.

@@ -38,9 +38,10 @@
   }
 
   // A random id per device, so visits can be counted without knowing who anyone is.
-  var visitor;
+  var visitor, returning = false;
   try {
     visitor = localStorage.getItem('pe-visitor');
+    returning = !!visitor;
     if (!visitor) { visitor = randomId(); localStorage.setItem('pe-visitor', visitor); }
   } catch (e) { visitor = randomId(); }
   var session = randomId();
@@ -81,6 +82,15 @@
     else if (!timer) timer = setTimeout(flush, 3000);
   }
 
+  // One event at the start of each visit: new or returning, dark mode, simple words,
+  // and the local hour (for "busiest times"). Nothing that says who anyone is.
+  track('session_start', {
+    returning: returning,
+    theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
+    simple: document.documentElement.hasAttribute('data-simple'),
+    hour: new Date().getHours()
+  });
+
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'hidden') flush();
   });
@@ -88,16 +98,25 @@
 
   // Totals for the hidden Stats link (see private_stats() in supabase/analytics.sql).
   // The key comes from the link itself; it is never stored in this file. Wrong key: null.
-  function stats(key) {
-    if (!SUPABASE_URL || !SUPABASE_KEY) return Promise.reject(new Error('not set up'));
-    return fetch(SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/rpc/private_stats', {
+  function rpc(fn, args) {
+    return fetch(SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
-      body: JSON.stringify({ key: String(key || '') })
+      body: JSON.stringify(args)
     }).then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     });
+  }
+
+  // Opening the Stats link also tells the server this device is the owner's:
+  // its past visits are deleted and it is never counted again (exclude_visitor()).
+  function stats(key) {
+    if (!SUPABASE_URL || !SUPABASE_KEY) return Promise.reject(new Error('not set up'));
+    key = String(key || '');
+    return rpc('exclude_visitor', { key: key, visitor: visitor })
+      .catch(function () { /* still show the stats */ })
+      .then(function () { return rpc('private_stats', { key: key }); });
   }
 
   window.PEAnalytics = { track: track, stats: stats, ready: !!(SUPABASE_URL && SUPABASE_KEY), isOwner: function () { return owner; } };

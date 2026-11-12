@@ -822,7 +822,7 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .stat-days { display: flex; align-items: flex-end; gap: 2px; height: 110px; border-bottom: 1px solid var(--rule); }
 .stat-days span { flex: 1; height: 100%; display: flex; align-items: flex-end; }
 .stat-days i { display: block; width: 100%; background: var(--accent); }
-.stat-axis { display: flex; justify-content: space-between; margin: 6px 0 0; font-size: 14px; }
+.stat-axis { max-width: none; display: flex; justify-content: space-between; margin: 6px 0 0; font-size: 14px; }
 .stat-pages { list-style: none; margin: 0; padding: 0; }
 .stat-pages li { display: grid; grid-template-columns: 1fr auto; gap: 0 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
 .stat-pages .pct { grid-column: 1 / -1; }
@@ -830,3 +830,6 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .nf-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
 .nf-links .btn { display: inline-flex; align-items: center; text-decoration: none; color: inherit; }
 .nf-links .btn.solid { color: var(--paper); }
+.stat-sub { display: block; color: var(--mute); font-size: 14px; }
+.stat-owner { margin: 14px 0 0; }
+.stat-hours { height: 80px; }
