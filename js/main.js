@@ -42,7 +42,7 @@
   var EXAM_DATE = '2026-11-12';
   var DEFAULTS = {
     theme: 'light', accent: 'red', color: '#c4122f', font: 'barlow', size: 'normal', density: 'comfy', motion: 'on',
-    simple: 'off', cardFirst: 'term', exam: EXAM_DATE, name: '', gameLength: '30', startPage: 'home', board: 'show', goal: '20'
+    simple: 'off', cardFirst: 'term', exam: EXAM_DATE, name: '', teacher: '', gameLength: '30', startPage: 'home', board: 'show', goal: '20'
   };
   var settings = {};
 
@@ -121,6 +121,8 @@
     $('#set-color').value = settings.color;
     if (document.activeElement !== $('#set-name')) $('#set-name').value = settings.name;
     if (document.activeElement !== $('#welcome-name')) $('#welcome-name').value = settings.name;
+    if (document.activeElement !== $('#set-teacher')) $('#set-teacher').value = settings.teacher || '';
+    if (document.activeElement !== $('#welcome-teacher')) $('#welcome-teacher').value = settings.teacher || '';
     if (settings.simple === 'on') root.setAttribute('data-simple', '');
     else root.removeAttribute('data-simple');
     $('#dumb-btn').setAttribute('aria-pressed', String(settings.simple === 'on'));
@@ -161,6 +163,12 @@
     $('#set-name').addEventListener('input', function (e) { changeSetting('name', e.target.value.trim()); });
     $('#welcome-name').addEventListener('input', function (e) { changeSetting('name', e.target.value.trim()); });
     $('#welcome-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
+    // The teacher name is saved as it's typed, and sent to the stats once, when the box is left.
+    ['#set-teacher', '#welcome-teacher'].forEach(function (sel) {
+      $(sel).addEventListener('input', function (e) { changeSetting('teacher', e.target.value.trim().slice(0, 40)); });
+      $(sel).addEventListener('change', function () { logEvent('teacher_set', { teacher: settings.teacher || '' }); });
+      $(sel).addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+    });
     $('#set-color').addEventListener('input', function (e) {
       settings.color = e.target.value;
       changeSetting('accent', 'custom');
@@ -178,7 +186,7 @@
   /* ---------- Welcome screen and patch notes ---------- */
 
   // Bump this when a new entry goes at the top of the What's new page.
-  var LATEST = { version: '2.5', note: 'Version 2.5: the site now counts visits anonymously.' };
+  var LATEST = { version: '2.6', note: 'Version 2.6: add your PE teacher in Settings (optional).' };
 
   // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
   function openDialog(box) {
@@ -421,6 +429,7 @@
     pick('startPage', 'Open the app on', 'start page last page');
     pick('board', 'Show or hide the scoreboard', 'home');
     settingPage('Your name', 'greeting profile', 'set-name');
+    settingPage('Your PE teacher', 'teacher class coach period', 'set-teacher');
     settingPage('Backup', 'save load transfer export import device', 'backup-save');
     settingPage('Put it on your phone', 'install app home screen', 'install-btn');
 
@@ -2782,8 +2791,22 @@
       if (!d) { showNotFound(); return; }
       var num = function (n) { return Number(n || 0).toLocaleString(); };
       var pct = function (n) { return n == null ? '–' : n + '%'; };
-      var tile = function (value, label) {
-        return '<div class="stat-tile"><b>' + value + '</b><span>' + label + '</span></div>';
+      var people = function (n) { n = Number(n || 0); return num(n) + (n === 1 ? ' person' : ' people'); };
+      // Study time from seconds or minutes: "45 min", "3 h 20 min".
+      var dur = function (mins) {
+        mins = Math.round(Number(mins || 0));
+        if (mins < 60) return mins + ' min';
+        return Math.floor(mins / 60) + ' h' + (mins % 60 ? ' ' + (mins % 60) + ' min' : '');
+      };
+      var act = d.activity || {};
+      var a = function (name) { return act[name] || { n: 0, people: 0 }; };
+      var tile = function (value, label, sub) {
+        return '<div class="stat-tile"><b>' + value + '</b><span>' + label + '</span>' + (sub ? '<small class="stat-sub">' + sub + '</small>' : '') + '</div>';
+      };
+      // Total (repeats included) with the unique-people count under it.
+      var both = function (name, label) {
+        var x = a(name);
+        return tile(num(x.n), label, 'total · by ' + people(x.people));
       };
       var head = function (text, sub) {
         return '<h2 class="stat-head">' + text + (sub ? ' <small>' + sub + '</small>' : '') + '</h2>';
@@ -2800,6 +2823,25 @@
         try { return scopeName(s); } catch (e) { return s; }
       };
       var dateLabel = function (day, opts) { return new Date(day + 'T12:00:00').toLocaleDateString(undefined, opts); };
+      // Exact local date and time, like "Nov 12, 3:41 PM".
+      var stamp = function (iso) {
+        var t = new Date(iso);
+        if (isNaN(t)) return '';
+        return t.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      };
+      var clock = function (iso) {
+        var t = new Date(iso);
+        return isNaN(t) ? '' : t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      };
+      var visits = d.visits_log || [];
+      var ago = function (iso) {
+        var mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+        if (!(mins >= 0)) return '';
+        if (mins < 2) return 'just now';
+        if (mins < 60) return mins + ' min ago';
+        if (mins < 48 * 60) return Math.round(mins / 60) + ' h ago';
+        return Math.round(mins / 1440) + ' days ago';
+      };
 
       var names = {};
       $$('.view').forEach(function (v) { names[v.id.slice(5)] = v.dataset.title; });
@@ -2807,109 +2849,179 @@
       var topViews = pages.length ? pages[0].views : 1;
       var days = d.daily || [];
       var topDay = Math.max.apply(null, days.map(function (x) { return x.visitors; }).concat(1));
+      var topMins = Math.max.apply(null, days.map(function (x) { return x.mins || 0; }).concat(1));
       var dev = d.devices || {};
       var devTotal = (dev.phone || 0) + (dev.tablet || 0) + (dev.computer || 0);
       var hours = [];
       for (var h = 0; h < 24; h++) hours.push(0);
       (d.hours || []).forEach(function (x) { if (x.hour >= 0 && x.hour < 24) hours[x.hour] = x.n; });
       var topHour = Math.max.apply(null, hours.concat(1));
-      var hourName = function (h) { return (h % 12 || 12) + (h < 12 ? 'am' : 'pm'); };
+      var hourName = function (hr) { return (hr % 12 || 12) + (hr < 12 ? 'am' : 'pm'); };
       var since = d.since ? dateLabel(d.since, { month: 'long', day: 'numeric', year: 'numeric' }) : '';
       var tests = d.tests_by_scope || [];
       var topRuns = tests.length ? tests[0].runs : 1;
       var picks = d.search_picks || [];
       var refs = d.referrers || [];
+      var teachers = d.teachers || [];
+      var topTeacher = teachers.length ? Math.max.apply(null, teachers.map(function (t) { return t.people; })) : 1;
+      var students = d.students || [];
+      var studyMins = Math.round((d.study_secs || 0) / 60);
+      var axis = function () {
+        return '<p class="note stat-axis"><span>' + (d.since ? esc(dateLabel(d.since, { month: 'short', day: 'numeric', year: 'numeric' })) : '') + '</span><span>Today</span></p>';
+      };
 
       root.innerHTML =
         (A.isOwner && A.isOwner() ? '<p class="note stat-owner">This device is marked as yours, so nothing you do on it is counted, and its earlier visits were removed.</p>' : '') +
         '<p class="stat-since">' + (since
           ? 'Counting started <b>' + esc(since) + '</b>. Visits before that day weren\'t recorded, so they aren\'t in these numbers.'
           : 'Counting has just started. Numbers show up after the first visit.') + '</p>' +
+        '<p class="note stat-key"><b>Total</b> counts every time, repeats included. <b>People</b> counts each person once, however many times they did it.</p>' +
 
         head('People') +
         '<div class="stat-tiles">' +
-          tile(num(d.visitors_total), 'People so far') +
-          tile(num(d.visitors_today), 'Studying today') +
-          tile(num(d.new_today), 'New today') +
-          tile(num(d.returning), 'Came back another day') +
-          tile(num(d.sessions_total), 'Study sessions') +
-          tile(d.avg_session_min == null ? '–' : d.avg_session_min + ' min', 'Average session') +
+          tile(num(d.visitors_total), 'Unique people', 'each person counted once') +
+          tile(num(d.sessions_total), 'Visits', 'total, repeat visits included') +
+          tile(num(d.visitors_today), 'People today', num(d.sessions_today) + ' visits today') +
+          tile(num(d.new_today), 'New today', 'first visit ever') +
+          tile(num(d.returning), 'Came back', 'people who visited on 2+ days') +
+          tile(d.avg_session_min == null ? '–' : d.avg_session_min + ' min', 'Average visit') +
         '</div>' +
 
-        head('People per day') +
-        '<div class="stat-days" role="img" aria-label="People per day since the site started counting">' +
-          days.map(function (x) {
-            var hgt = Math.round(x.visitors / topDay * 100);
-            return '<span title="' + esc(dateLabel(x.day, { month: 'short', day: 'numeric' })) + ': ' + x.visitors + ' people, ' + (x.views || 0) + ' pages"><i style="height:' + Math.max(hgt, 2) + '%"></i></span>';
-          }).join('') +
-        '</div><p class="note stat-axis"><span>' + (d.since ? esc(dateLabel(d.since, { month: 'short', day: 'numeric', year: 'numeric' })) : '') + '</span><span>Today</span></p>' +
-
-        head('Studying') +
+        head('Study time', 'only counted while the page is open and being used') +
         '<div class="stat-tiles">' +
-          tile(num(d.views_total), 'Pages opened') +
-          tile(num(d.tests_started), 'Tests started') +
-          tile(num(d.tests_total), 'Tests finished') +
+          tile(dur(studyMins), 'Total study time', 'by ' + people(d.study_people)) +
+          tile(d.study_people ? dur(studyMins / d.study_people) : '–', 'Average per person') +
+          tile(dur(Math.round((d.study_today_secs || 0) / 60)), 'Studied today', 'by ' + people(d.study_today_people)) +
+        '</div>' +
+
+        head('People per day', 'unique people each day') +
+        '<div class="stat-days" role="img" aria-label="Unique people per day">' +
+          days.map(function (x) {
+            return '<span title="' + esc(dateLabel(x.day, { month: 'short', day: 'numeric' })) + ': ' + people(x.visitors) + ', ' + num(x.sessions) + ' visits, ' + num(x.views) + ' pages, ' + dur(x.mins) + ' studied"><i style="height:' + Math.max(Math.round(x.visitors / topDay * 100), 2) + '%"></i></span>';
+          }).join('') +
+        '</div>' + axis() +
+
+        head('Study time per day') +
+        '<div class="stat-days" role="img" aria-label="Minutes studied per day">' +
+          days.map(function (x) {
+            return '<span title="' + esc(dateLabel(x.day, { month: 'short', day: 'numeric' })) + ': ' + dur(x.mins) + '"><i style="height:' + Math.max(Math.round((x.mins || 0) / topMins * 100), 2) + '%"></i></span>';
+          }).join('') +
+        '</div>' + axis() +
+
+        head('Studying', 'big number = total, small = unique people') +
+        '<div class="stat-tiles">' +
+          both('page_view', 'Pages opened') +
+          both('test_started', 'Tests started') +
+          both('test_finished', 'Tests finished') +
           tile(pct(d.avg_score), 'Average test score') +
-          tile(num(d.questions), 'Questions answered') +
+          both('question_answered', 'Questions answered') +
           tile(pct(d.questions_pct), 'Answered right') +
-          tile(num(d.cards), 'Flashcards rated') +
+          both('card_rated', 'Flashcards rated') +
           tile(pct(d.cards_pct), 'Marked "got it"') +
-          tile(num(d.drills), 'Formula drills') +
+          both('drill_answered', 'Formula drills') +
           tile(pct(d.drills_pct), 'Drills right') +
-          tile(num(d.muscle), 'Muscle map answers') +
+          both('muscle_quiz', 'Muscle map answers') +
           tile(pct(d.muscle_pct), 'Muscle map right') +
-          tile(num(d.matches), 'Matching games') +
+          both('match_finished', 'Matching games') +
           tile(d.match_avg_sec == null ? '–' : d.match_avg_sec + 's', 'Average match time') +
         '</div>' +
 
+        head('By PE teacher', 'only people who typed one in') +
+        list(teachers.map(function (t) {
+          return {
+            label: t.name, value: people(t.people), bar: t.people / topTeacher * 100,
+            sub: num(t.sessions) + ' visits · ' + dur(t.mins) + ' studied · ' + num(t.tests) + ' tests' + (t.avg_score == null ? '' : ' · average ' + t.avg_score + '%')
+          };
+        }), 'Nobody has added a teacher yet. Students can add one in Settings.') +
+        (teachers.length ? '<p class="note">' + people(d.no_teacher) + ' didn\'t add a teacher.</p>' : '') +
+
+        head('Students', 'anonymous: numbered in the order they first visited, most study time first') +
+        (students.length ? '<div class="stat-table"><table class="tbl stat-students"><thead><tr>' +
+          '<th scope="col">Student</th><th scope="col">Teacher</th><th scope="col">Study time</th><th scope="col">Visits</th><th scope="col">Days</th>' +
+          '<th scope="col">Pages</th><th scope="col">Questions</th><th scope="col">Cards</th><th scope="col">Tests</th><th scope="col">First seen</th><th scope="col">Last seen</th>' +
+          '</tr></thead><tbody>' +
+          students.map(function (s) {
+            return '<tr><th scope="row">Student ' + num(s.num) + '</th>' +
+              '<td>' + (s.teacher ? esc(s.teacher) : '<span class="note">–</span>') + '</td>' +
+              '<td>' + dur(s.mins) + '</td><td>' + num(s.sessions) + '</td><td>' + num(s.days) + '</td>' +
+              '<td>' + num(s.views) + '</td>' +
+              '<td>' + num(s.questions) + (s.q_pct == null ? '' : ' <small class="note">(' + s.q_pct + '% right)</small>') + '</td>' +
+              '<td>' + num(s.cards) + '</td>' +
+              '<td>' + num(s.tests) + (s.avg_score == null ? '' : ' <small class="note">(avg ' + s.avg_score + '%)</small>') + '</td>' +
+              '<td>' + esc(stamp(s.first_seen)) + '</td>' +
+              '<td>' + esc(stamp(s.last_seen)) + ' <small class="note">(' + esc(ago(s.last_seen)) + ')</small></td></tr>';
+          }).join('') +
+          '</tbody></table></div>' : '<p class="note">No one yet.</p>') +
+
+        head('Visit log', 'the latest ' + visits.length + ' visits, newest first, in your local time') +
+        (visits.length ? '<div class="stat-table"><table class="tbl stat-students"><thead><tr>' +
+          '<th scope="col">When</th><th scope="col">Student</th><th scope="col">Teacher</th><th scope="col">Length</th><th scope="col">Studied</th>' +
+          '<th scope="col">Did</th><th scope="col">Pages (in order)</th>' +
+          '</tr></thead><tbody>' +
+          visits.map(function (v) {
+            var len = Math.round((new Date(v.ended) - new Date(v.started)) / 60000);
+            var did = [];
+            if (v.questions) did.push(num(v.questions) + (v.questions === 1 ? ' question' : ' questions'));
+            if (v.cards) did.push(num(v.cards) + (v.cards === 1 ? ' card' : ' cards'));
+            if (v.tests) did.push(num(v.tests) + (v.tests === 1 ? ' test' : ' tests'));
+            return '<tr><td>' + esc(stamp(v.started)) + ' – ' + esc(clock(v.ended)) + '</td>' +
+              '<th scope="row">Student ' + num(v.num) + '</th>' +
+              '<td>' + (v.teacher ? esc(v.teacher) : '<span class="note">–</span>') + '</td>' +
+              '<td>' + (len > 0 ? dur(len) : 'under 1 min') + '</td>' +
+              '<td>' + dur(v.mins) + '</td>' +
+              '<td>' + (did.length ? esc(did.join(', ')) : '<span class="note">browsing</span>') + '</td>' +
+              '<td>' + esc((v.pages || []).map(function (pg) { return names[pg] || pg; }).join(' → ')) + '</td></tr>';
+          }).join('') +
+          '</tbody></table></div>' : '<p class="note">No visits yet.</p>') +
+
         head('Hardest questions', 'most missed, at least 3 tries') +
         list((d.missed || []).map(function (m) {
-          return { label: m.t || ('Question ' + m.q), value: m.miss_pct + '% missed', bar: m.miss_pct, sub: m.n + ' tries' };
+          return { label: m.t || ('Question ' + m.q), value: m.miss_pct + '% missed', bar: m.miss_pct, sub: num(m.n) + ' tries (total) by ' + people(m.people) };
         }), 'Not enough answers yet.') +
 
         head('Tests by type') +
         list(tests.map(function (t) {
-          return { label: scopeLabel(t.scope), value: num(t.runs), bar: t.runs / topRuns * 100, sub: t.pct == null ? '' : 'Average ' + t.pct + '%' };
+          return { label: scopeLabel(t.scope), value: num(t.runs), bar: t.runs / topRuns * 100, sub: num(t.runs) + ' total by ' + people(t.people) + (t.pct == null ? '' : ' · average ' + t.pct + '%') };
         }), 'No finished tests yet.') +
 
         head('Most used pages') +
         list(pages.map(function (p) {
-          return { label: names[p.page] || p.page, value: num(p.views), bar: p.views / topViews * 100 };
+          return { label: names[p.page] || p.page, value: num(p.views), bar: p.views / topViews * 100, sub: num(p.views) + ' opens (total) by ' + people(p.people) + ' · ' + dur(p.mins) + ' studied here' };
         }), 'No visits yet.') +
 
         head('Busiest times', 'when visits start, in each person\'s local time') +
         '<div class="stat-days stat-hours" role="img" aria-label="Visits by hour of the day">' +
           hours.map(function (n, i) {
-            return '<span title="' + hourName(i) + ': ' + n + '"><i style="height:' + Math.max(Math.round(n / topHour * 100), 2) + '%"></i></span>';
+            return '<span title="' + hourName(i) + ': ' + n + ' visits"><i style="height:' + Math.max(Math.round(n / topHour * 100), 2) + '%"></i></span>';
           }).join('') +
         '</div><p class="note stat-axis"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>11pm</span></p>' +
 
-        head('Devices') +
+        head('Devices', 'unique people, by their latest device') +
         '<div class="stat-tiles">' +
-          tile(devTotal ? Math.round((dev.phone || 0) / devTotal * 100) + '%' : '–', 'Phones') +
-          tile(devTotal ? Math.round((dev.tablet || 0) / devTotal * 100) + '%' : '–', 'Tablets') +
-          tile(devTotal ? Math.round((dev.computer || 0) / devTotal * 100) + '%' : '–', 'Computers') +
-          tile(num(dev.installed), 'Installed the app') +
-          tile(pct(d.dark_pct), 'Use dark mode') +
-          tile(pct(d.simple_pct), 'Use Simple words') +
+          tile(devTotal ? Math.round((dev.phone || 0) / devTotal * 100) + '%' : '–', 'Phones', people(dev.phone)) +
+          tile(devTotal ? Math.round((dev.tablet || 0) / devTotal * 100) + '%' : '–', 'Tablets', people(dev.tablet)) +
+          tile(devTotal ? Math.round((dev.computer || 0) / devTotal * 100) + '%' : '–', 'Computers', people(dev.computer)) +
+          tile(num(dev.installed), 'Installed the app', 'unique people') +
+          tile(pct(d.dark_pct), 'Visits in dark mode') +
+          tile(pct(d.simple_pct), 'Visits with Simple words') +
         '</div>' +
 
-        head('Other') +
+        head('Other', 'big number = total, small = unique people') +
         '<div class="stat-tiles">' +
-          tile(num(d.searches), 'Searches opened') +
-          tile(num(d.bookmarks), 'Bookmarks added') +
-          tile(num(d.shares), 'Scores shared') +
-          tile(num(d.feedback), 'Feedback form opened') +
+          both('search_used', 'Searches opened') +
+          both('bookmark', 'Bookmarks added') +
+          both('share', 'Scores shared') +
+          both('feedback_click', 'Feedback form opened') +
         '</div>' +
 
         head('Top search results opened') +
         list(picks.map(function (p) {
-          return { label: p.title, value: num(p.n), bar: p.n / (picks[0].n || 1) * 100 };
+          return { label: p.title, value: num(p.n), bar: p.n / (picks[0].n || 1) * 100, sub: num(p.n) + ' total by ' + people(p.people) };
         }), 'No searches yet.') +
 
         head('Where people came from', 'other websites that linked here') +
         list(refs.map(function (r) {
-          return { label: r.site, value: num(r.n), bar: r.n / (refs[0].n || 1) * 100 };
+          return { label: r.site, value: people(r.people), bar: r.people / (refs[0].people || 1) * 100, sub: num(r.n) + ' visits total' };
         }), 'Nobody has come from another website yet. Typed or shared links don\'t show here.');
     }).catch(function () {
       root.innerHTML = '<p class="note">Couldn\'t load the stats. Check your connection and try again.</p>';

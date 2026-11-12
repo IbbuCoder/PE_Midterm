@@ -833,3 +833,9 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .stat-sub { display: block; color: var(--mute); font-size: 14px; }
 .stat-owner { margin: 14px 0 0; }
 .stat-hours { height: 80px; }
+.stat-tile .stat-sub { margin-top: 4px; font-size: 13px; }
+.stat-key { margin: 12px 0 0; font-size: 15px; }
+.stat-table { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--rule); }
+.stat-students { font-size: 15px; white-space: nowrap; }
+.stat-students th, .stat-students td { padding: 8px 10px; }
+.stat-students thead th { font-size: 16px; }

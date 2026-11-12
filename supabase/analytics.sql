@@ -93,7 +93,7 @@ create policy "site can insert events" on public.events
 
 -- ---------------------------------------------------------------
 -- Private stats for the hidden Stats link. Wrong key: null.
--- Returns totals only: never visitor ids or single rows.
+-- Never returns visitor ids or names: each person is only "Student <number>".
 -- ---------------------------------------------------------------
 drop function if exists public.public_stats();
 
@@ -112,15 +112,43 @@ begin
     return null;
   end if;
 
+  -- Every count comes in two forms: n = total (repeats included), people = unique people.
   with e as materialized (
     select ev.* from public.events ev
     where not exists (select 1 from public.excluded_visitors x where x.visitor_id = ev.visitor_id)
   ),
+  -- Active study time, in seconds. Each chunk is capped so one bad row can't skew it.
+  st as (
+    select visitor_id, session_id, page, created_at,
+           least(greatest(coalesce((props->>'secs')::numeric, 0), 0), 600) as secs
+    from e where name = 'study_time'
+  ),
   visitors as (
     select visitor_id,
            min(created_at) as first_at,
-           count(distinct date_trunc('day', created_at)) as days
+           max(created_at) as last_at,
+           count(distinct date_trunc('day', created_at)) as days,
+           count(distinct session_id) as sessions
     from e group by visitor_id
+  ),
+  -- Anonymous labels: Student 1 is the first person ever counted, and so on.
+  labels as (
+    select visitor_id, row_number() over (order by first_at, visitor_id) as num from visitors
+  ),
+  -- Each person's latest teacher answer (an empty answer clears it).
+  teacher_raw as (
+    select distinct on (visitor_id) visitor_id,
+           nullif(btrim(left(props->>'teacher', 40)), '') as teacher
+    from e where props ? 'teacher'
+    order by visitor_id, created_at desc
+  ),
+  teacher_of as (
+    select visitor_id, teacher,
+           btrim(regexp_replace(lower(teacher), '[.,\s]+', ' ', 'g')) as tkey
+    from teacher_raw where teacher is not null
+  ),
+  act as (
+    select name, count(*) as n, count(distinct visitor_id) as people from e group by name
   ),
   sessions as (
     select session_id, count(*) as n,
@@ -137,40 +165,50 @@ begin
   ),
   qa as (
     select props->>'q' as q, max(props->>'t') as t, count(*) as n,
+           count(distinct visitor_id) as people,
            count(*) filter (where (props->>'right')::boolean) as r
     from e where name = 'question_answered' group by 1
+  ),
+  per_person as (
+    select v.visitor_id, l.num, t.teacher, v.first_at, v.last_at, v.days, v.sessions,
+           coalesce((select sum(secs) from st where st.visitor_id = v.visitor_id), 0) as secs,
+           (select count(*) from e where e.visitor_id = v.visitor_id and e.name = 'page_view') as views,
+           (select count(*) from e where e.visitor_id = v.visitor_id and e.name = 'question_answered') as questions,
+           (select round(avg(case when (props->>'right')::boolean then 1 else 0 end) * 100)
+              from e where e.visitor_id = v.visitor_id and e.name = 'question_answered') as q_pct,
+           (select count(*) from e where e.visitor_id = v.visitor_id and e.name = 'card_rated') as cards,
+           (select count(*) from e where e.visitor_id = v.visitor_id and e.name = 'test_finished') as tests,
+           (select round(avg((props->>'right')::numeric / nullif((props->>'total')::numeric, 0)) * 100)
+              from e where e.visitor_id = v.visitor_id and e.name = 'test_finished') as avg_score
+    from visitors v
+    join labels l using (visitor_id)
+    left join teacher_of t using (visitor_id)
   )
   select json_build_object(
     'since',            (select to_char(min(created_at), 'YYYY-MM-DD') from e),
     'visitors_total',   (select count(*) from visitors),
     'sessions_total',   (select count(*) from sessions),
-    'views_total',      (select count(*) from e where name = 'page_view'),
     'visitors_today',   (select count(distinct visitor_id) from e where created_at >= today),
+    'sessions_today',   (select count(distinct session_id) from e where created_at >= today),
     'new_today',        (select count(*) from visitors where first_at >= today),
     'returning',        (select count(*) from visitors where days >= 2),
     'avg_session_min',  (select round((avg(secs) / 60)::numeric, 1) from sessions where n > 1),
-    'tests_started',    (select count(*) from e where name = 'test_started'),
-    'tests_total',      (select count(*) from e where name = 'test_finished'),
+    'activity',         (select coalesce(json_object_agg(name, json_build_object('n', n, 'people', people)), '{}'::json) from act),
+    'study_secs',       (select coalesce(sum(secs), 0) from st),
+    'study_people',     (select count(distinct visitor_id) from st),
+    'study_today_secs', (select coalesce(sum(secs), 0) from st where created_at >= today),
+    'study_today_people', (select count(distinct visitor_id) from st where created_at >= today),
     'avg_score',        (select round(avg((props->>'right')::numeric
                                        / nullif((props->>'total')::numeric, 0)) * 100)
                          from e where name = 'test_finished'),
-    'questions',        (select coalesce(sum(n), 0) from qa),
     'questions_pct',    (select round(sum(r)::numeric / nullif(sum(n), 0) * 100) from qa),
-    'cards',            (select count(*) from e where name = 'card_rated'),
     'cards_pct',        (select round(avg(case when (props->>'known')::boolean then 1 else 0 end) * 100)
                          from e where name = 'card_rated'),
-    'drills',           (select count(*) from e where name = 'drill_answered'),
     'drills_pct',       (select round(avg(case when (props->>'right')::boolean then 1 else 0 end) * 100)
                          from e where name = 'drill_answered'),
-    'muscle',           (select count(*) from e where name = 'muscle_quiz'),
     'muscle_pct',       (select round(avg(case when (props->>'right')::boolean then 1 else 0 end) * 100)
                          from e where name = 'muscle_quiz'),
-    'matches',          (select count(*) from e where name = 'match_finished'),
     'match_avg_sec',    (select round(avg((props->>'ms')::numeric) / 1000) from e where name = 'match_finished'),
-    'bookmarks',        (select count(*) from e where name = 'bookmark'),
-    'shares',           (select count(*) from e where name = 'share'),
-    'feedback',         (select count(*) from e where name = 'feedback_click'),
-    'searches',         (select count(*) from e where name = 'search_used'),
     'devices',          (select json_build_object(
                            'phone',     count(*) filter (where screen_w < 700),
                            'tablet',    count(*) filter (where screen_w >= 700 and screen_w < 1100),
@@ -179,37 +217,77 @@ begin
                          from devices),
     'dark_pct',         (select round(avg(case when props->>'theme' = 'dark' then 1 else 0 end) * 100) from starts),
     'simple_pct',       (select round(avg(case when (props->>'simple')::boolean then 1 else 0 end) * 100) from starts),
-    'top_pages',        (select coalesce(json_agg(t), '[]'::json) from (
-                           select page, count(*) as views from e
-                           where name = 'page_view'
-                           group by page order by views desc limit 8) t),
-    'tests_by_scope',   (select coalesce(json_agg(t), '[]'::json) from (
-                           select props->>'scope' as scope, count(*) as runs,
+    'top_pages',        (select coalesce(json_agg(x), '[]'::json) from (
+                           select p.page, p.views, p.people,
+                                  coalesce((select round(sum(secs) / 60) from st where st.page = p.page), 0) as mins
+                           from (select page, count(*) as views, count(distinct visitor_id) as people
+                                 from e where name = 'page_view' group by page) p
+                           order by p.views desc limit 10) x),
+    'tests_by_scope',   (select coalesce(json_agg(x), '[]'::json) from (
+                           select props->>'scope' as scope, count(*) as runs, count(distinct visitor_id) as people,
                                   round(avg((props->>'right')::numeric
                                             / nullif((props->>'total')::numeric, 0)) * 100) as pct
                            from e where name = 'test_finished'
-                           group by 1 order by runs desc limit 8) t),
+                           group by 1 order by runs desc limit 8) x),
     'missed',           (select coalesce(json_agg(m), '[]'::json) from (
-                           select q, t, n, round((n - r)::numeric / n * 100) as miss_pct
+                           select q, t, n, people, round((n - r)::numeric / n * 100) as miss_pct
                            from qa where n >= 3
                            order by (n - r)::numeric / n desc, n desc limit 8) m),
-    'search_picks',     (select coalesce(json_agg(t), '[]'::json) from (
-                           select props->>'picked' as title, count(*) as n
+    'search_picks',     (select coalesce(json_agg(x), '[]'::json) from (
+                           select props->>'picked' as title, count(*) as n, count(distinct visitor_id) as people
                            from e where name = 'search_used' and props->>'picked' is not null
-                           group by 1 order by n desc limit 8) t),
-    'referrers',        (select coalesce(json_agg(t), '[]'::json) from (
-                           select substring(referrer from '^https?://([^/:]+)') as site, count(distinct visitor_id) as n
+                           group by 1 order by n desc limit 8) x),
+    'referrers',        (select coalesce(json_agg(x), '[]'::json) from (
+                           select substring(referrer from '^https?://([^/:]+)') as site,
+                                  count(*) as n, count(distinct visitor_id) as people
                            from e where referrer is not null
                              and substring(referrer from '^https?://([^/:]+)') <> 'ibbucoder.github.io'
-                           group by 1 order by n desc limit 6) t),
-    'hours',            (select coalesce(json_agg(t order by t.hour), '[]'::json) from (
+                           group by 1 order by people desc limit 6) x),
+    'hours',            (select coalesce(json_agg(x order by x.hour), '[]'::json) from (
                            select (props->>'hour')::int as hour, count(*) as n
                            from starts where props ? 'hour'
-                           group by 1) t),
+                           group by 1) x),
+    'teachers',         (select coalesce(json_agg(x), '[]'::json) from (
+                           select mode() within group (order by t.teacher) as name,
+                                  count(*) as people,
+                                  sum(pp.sessions) as sessions,
+                                  round(sum(pp.secs) / 60) as mins,
+                                  sum(pp.tests) as tests,
+                                  round(avg(pp.avg_score)) as avg_score
+                           from teacher_of t join per_person pp using (visitor_id)
+                           group by t.tkey order by people desc, mins desc limit 30) x),
+    'no_teacher',       (select count(*) from visitors v where not exists (select 1 from teacher_of t where t.visitor_id = v.visitor_id)),
+    'students',         (select coalesce(json_agg(x), '[]'::json) from (
+                           select num, teacher,
+                                  to_char(first_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as first_seen,
+                                  to_char(last_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as last_seen,
+                                  days, sessions, round(secs / 60) as mins, views,
+                                  questions, q_pct, cards, tests, avg_score
+                           from per_person
+                           order by secs desc, last_at desc limit 300) x),
+    -- Time log: the latest 150 visits, each with start and end time (UTC; the page shows local time).
+    'visits_log',       (select coalesce(json_agg(x order by x.started desc), '[]'::json) from (
+                           select l.num, tt.teacher,
+                                  to_char(min(e.created_at) at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as started,
+                                  to_char(max(e.created_at) at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as ended,
+                                  round(coalesce(sum(least(greatest(coalesce((e.props->>'secs')::numeric, 0), 0), 600))
+                                                 filter (where e.name = 'study_time'), 0) / 60) as mins,
+                                  count(*) filter (where e.name = 'page_view') as views,
+                                  count(*) filter (where e.name = 'question_answered') as questions,
+                                  count(*) filter (where e.name = 'card_rated') as cards,
+                                  count(*) filter (where e.name = 'test_finished') as tests,
+                                  (array_agg(e.page order by e.created_at) filter (where e.name = 'page_view'))[1:6] as pages
+                           from e join labels l using (visitor_id)
+                           left join teacher_of tt using (visitor_id)
+                           group by e.session_id, l.num, tt.teacher
+                           order by min(e.created_at) desc limit 150) x),
     'daily',            (select coalesce(json_agg(d order by d.day), '[]'::json) from (
                            select to_char(g.day, 'YYYY-MM-DD') as day,
                                   count(distinct e.visitor_id) as visitors,
-                                  count(*) filter (where e.name = 'page_view') as views
+                                  count(distinct e.session_id) as sessions,
+                                  count(*) filter (where e.name = 'page_view') as views,
+                                  coalesce(round(sum(least(greatest(coalesce((e.props->>'secs')::numeric, 0), 0), 600))
+                                                 filter (where e.name = 'study_time') / 60), 0) as mins
                            from generate_series(
                                   coalesce((select date_trunc('day', min(created_at)) from e), today),
                                   today, interval '1 day') as g(day)

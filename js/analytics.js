@@ -84,17 +84,55 @@
 
   // One event at the start of each visit: new or returning, dark mode, simple words,
   // and the local hour (for "busiest times"). Nothing that says who anyone is.
+  var teacher = '';
+  try { teacher = String(((JSON.parse(localStorage.getItem('pe-midterm-v1')) || {}).settings || {}).teacher || '').slice(0, 40); } catch (e) { /* ignore */ }
   track('session_start', {
     returning: returning,
+    teacher: teacher,
     theme: document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
     simple: document.documentElement.hasAttribute('data-simple'),
     hour: new Date().getHours()
   });
 
-  document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'hidden') flush();
+  // Active study time. Counts only while the page is on screen AND someone has
+  // touched, typed, scrolled or moved the mouse in the last 60 seconds. Sent in
+  // small chunks per page, so a tab left open overnight adds nothing.
+  var TICK = 5;
+  var lastInput = Date.now();
+  var pending = 0;
+  var pendingPage = null;
+  function pageNow() {
+    var h = location.hash.slice(1);
+    return (/^k\//.test(h) ? 'stats' : (h || 'home')).slice(0, 64);
+  }
+  function sendTime() {
+    if (pending > 0 && !off) {
+      var row = { secs: pending };
+      queue.push({
+        visitor_id: visitor, session_id: session, name: 'study_time', page: pendingPage || pageNow(),
+        props: row, referrer: null, screen_w: window.innerWidth,
+        standalone: window.matchMedia('(display-mode: standalone)').matches
+      });
+    }
+    pending = 0;
+    pendingPage = null;
+  }
+  ['pointerdown', 'keydown', 'scroll', 'touchstart', 'mousemove', 'wheel'].forEach(function (ev) {
+    window.addEventListener(ev, function () { lastInput = Date.now(); }, { passive: true, capture: true });
   });
-  window.addEventListener('pagehide', flush);
+  window.addEventListener('hashchange', function () { sendTime(); });
+  setInterval(function () {
+    if (off || document.visibilityState !== 'visible' || Date.now() - lastInput > 60000) return;
+    if (pendingPage && pendingPage !== pageNow()) sendTime();
+    pendingPage = pageNow();
+    pending += TICK;
+    if (pending >= 120) { sendTime(); flush(); }
+  }, TICK * 1000);
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') { sendTime(); flush(); }
+  });
+  window.addEventListener('pagehide', function () { sendTime(); flush(); });
 
   // Totals for the hidden Stats link (see private_stats() in supabase/analytics.sql).
   // The key comes from the link itself; it is never stored in this file. Wrong key: null.

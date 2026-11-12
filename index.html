@@ -33,7 +33,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Oswald:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
-<link rel="stylesheet" href="./css/style.css?v=3.2">
+<link rel="stylesheet" href="./css/style.css?v=3.3">
 </head>
 <body>
 
@@ -786,6 +786,11 @@ try {
       <p class="note">Shows on Home. Saved on this device only.</p>
       <input class="text-input" id="set-name" type="text" maxlength="24" autocomplete="off" placeholder="Type your name">
     </div>
+    <div class="set-row">
+      <label class="set-label" for="set-teacher">Your PE teacher</label>
+      <p class="note">Optional. Helps show how each class is studying. It's shared with the site's anonymous stats, but your name never is.</p>
+      <input class="text-input" id="set-teacher" type="text" maxlength="40" autocomplete="off" placeholder="For example: Mr. Smith">
+    </div>
 
     <h2 class="set-group">Look</h2>
     <div class="set-row">
@@ -953,7 +958,7 @@ try {
 <section class="view" id="view-stats" data-title="Stats">
   <div class="wrap narrow">
     <header class="unit-head"><h1 tabindex="-1">Stats</h1></header>
-    <p class="note">How people are using the site. These numbers only start from the day counting was switched on, not from when the site was made. Only totals are shown: no names, and nothing that points to one person.</p>
+    <p class="note">How people are using the site. These numbers only start from the day counting was switched on, not from when the site was made. Nobody's name is ever recorded: each person shows up only as a number, like Student 4.</p>
     <div id="stats-root"></div>
   </div>
 </section>
@@ -1015,6 +1020,15 @@ try {
   <div class="wrap narrow">
     <header class="unit-head"><h1 tabindex="-1">What's new</h1></header>
     <p class="note patch-intro">Patch notes for the study site. Newest changes are at the top.</p>
+
+    <article class="patch" id="patch-2-6">
+      <header class="patch-head"><h2>Version 2.6</h2><time datetime="2026-11-12">Nov 12, 2026</time></header>
+      <h3>New</h3>
+      <ul>
+        <li><strong>Your PE teacher:</strong> you can type your PE teacher's name in Settings. It's optional. It helps show how each class is studying.</li>
+        <li>The site now also counts how long people study and what they practice, without names. Each person is only a number. Turn on "Do Not Track" in your browser to opt out.</li>
+      </ul>
+    </article>
 
     <article class="patch" id="patch-2-5">
       <header class="patch-head"><h2>Version 2.5</h2><time datetime="2026-11-12">Nov 12, 2026</time></header>
@@ -1182,6 +1196,10 @@ try {
       <input class="text-input welcome-name" id="welcome-name" type="text" maxlength="24" autocomplete="off" placeholder="Shows on Home (optional)">
     </div>
     <div class="welcome-row">
+      <label class="set-label" for="welcome-teacher">Your PE teacher</label>
+      <input class="text-input welcome-name" id="welcome-teacher" type="text" maxlength="40" autocomplete="off" placeholder="Optional. Shared anonymously in site stats">
+    </div>
+    <div class="welcome-row">
       <span class="set-label">Theme</span>
       <div class="seg" data-set="theme">
         <button type="button" data-val="light">Light</button>
@@ -1224,10 +1242,10 @@ try {
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="./js/analytics.js?v=3.2"></script>
+<script src="./js/analytics.js?v=3.3"></script>
 <script src="./js/data.js?v=2.9"></script>
 <script src="./js/simple.js?v=2.9"></script>
 <script src="./js/body.js?v=2.9"></script>
-<script src="./js/main.js?v=3.2"></script>
+<script src="./js/main.js?v=3.3"></script>
 </body>
 </html>
