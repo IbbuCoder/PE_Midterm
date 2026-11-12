@@ -3,8 +3,8 @@
 (function () {
   'use strict';
 
-  var SUPABASE_URL = '';   // e.g. 'https://abcd1234.supabase.co'
-  var SUPABASE_KEY = '';   // the publishable key (sb_publishable_...) or the legacy anon key
+  var SUPABASE_URL = 'https://slqllkrgrgjsnjmdvxqg.supabase.co';   // e.g. 'https://abcd1234.supabase.co'
+  var SUPABASE_KEY = 'sb_publishable_sMCYPVYV9QInL-UeP0aPUQ_D2EsDs16';   // the publishable key (sb_publishable_...) or the legacy anon key
 
   var queue = [];
   var timer = null;
