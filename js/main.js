@@ -171,7 +171,7 @@
   /* ---------- Welcome screen and patch notes ---------- */
 
   // Bump this when a new entry goes at the top of the What's new page.
-  var LATEST = { version: '2.4', note: 'Version 2.4: a 40 question mock quiz with a 45 minute clock, right on the Test page.' };
+  var LATEST = { version: '2.5', note: 'Version 2.5: a public Stats page under More.' };
 
   // Older phones (iOS before 15.4) have no showModal, so fall back to a plain open flag.
   function openDialog(box) {
@@ -766,7 +766,7 @@
       else a.removeAttribute('aria-current');
     });
     var tabId = /^u\d$/.test(id) ? 'units' : id;
-    if (['settings', 'updates', 'weak', 'more', 'sheet', 'last'].indexOf(id) > -1) tabId = 'more';
+    if (['settings', 'updates', 'weak', 'more', 'sheet', 'last', 'stats'].indexOf(id) > -1) tabId = 'more';
     if (id === 'drills' || id === 'match') tabId = 'test';
     if (id !== 'test') test.mockIntro = false;
     $$('.tabbar a').forEach(function (a) {
@@ -791,6 +791,7 @@
     if (id === 'match') renderMatch();
     if (id === 'last') renderLast();
     if (id === 'saved') renderSaved();
+    if (id === 'stats') renderStats();
     stopSpeaking();
     window.scrollTo(0, 0);
     if (!first) {
@@ -2737,6 +2738,54 @@
     else if (run.finished) renderResult(root);
     else if (isCardId(run.ids[run.pos])) renderStudyCard(root);
     else renderQuestion(root);
+  }
+
+  /* ---------- Public stats ---------- */
+
+  function renderStats() {
+    var root = $('#stats-root');
+    var A = window.PEAnalytics;
+    if (!A || !A.ready) {
+      root.innerHTML = '<p class="note">Stats aren\'t switched on yet.</p>';
+      return;
+    }
+    root.innerHTML = '<p class="note">Loading…</p>';
+    A.stats().then(function (d) {
+      var num = function (n) { return Number(n || 0).toLocaleString(); };
+      var tile = function (value, label) {
+        return '<div class="stat-tile"><b>' + value + '</b><span>' + label + '</span></div>';
+      };
+      var names = {};
+      $$('.view').forEach(function (v) { names[v.id.slice(5)] = v.dataset.title; });
+      var pages = d.top_pages || [];
+      var topViews = pages.length ? pages[0].views : 1;
+      var days = d.daily || [];
+      var topDay = Math.max.apply(null, days.map(function (x) { return x.visitors; }).concat(1));
+      root.innerHTML =
+        '<div class="stat-tiles">' +
+          tile(num(d.visitors_today), 'Studying today') +
+          tile(num(d.visitors_week), 'This week') +
+          tile(num(d.visitors_total), 'All time') +
+          tile(num(d.tests_total), 'Tests finished') +
+          tile(d.avg_score == null ? '–' : d.avg_score + '%', 'Average test score') +
+          tile(num(d.views_week), 'Pages opened this week') +
+        '</div>' +
+        '<h2 class="stat-head">People per day</h2>' +
+        '<div class="stat-days" role="img" aria-label="People per day over the last 14 days">' +
+          days.map(function (x) {
+            var h = Math.round(x.visitors / topDay * 100);
+            var label = new Date(x.day + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            return '<span title="' + esc(label) + ': ' + x.visitors + '"><i style="height:' + Math.max(h, 2) + '%"></i></span>';
+          }).join('') +
+        '</div><p class="note stat-axis"><span>2 weeks ago</span><span>Today</span></p>' +
+        '<h2 class="stat-head">Most used pages <small>last 30 days</small></h2>' +
+        (pages.length ? '<ul class="stat-pages">' + pages.map(function (p) {
+          return '<li><span>' + esc(names[p.page] || p.page) + '</span><b>' + num(p.views) + '</b>' +
+            '<span class="pct"><i style="width:' + Math.round(p.views / topViews * 100) + '%"></i></span></li>';
+        }).join('') + '</ul>' : '<p class="note">No visits yet.</p>');
+    }).catch(function () {
+      root.innerHTML = '<p class="note">Couldn\'t load the stats. Check your connection and try again.</p>';
+    });
   }
 
   function finishRun(run) {

@@ -68,5 +68,18 @@
   });
   window.addEventListener('pagehide', flush);
 
-  window.PEAnalytics = { track: track };
+  // Totals for the public Stats page (see public_stats() in supabase/analytics.sql).
+  function stats() {
+    if (!SUPABASE_URL || !SUPABASE_KEY) return Promise.reject(new Error('not set up'));
+    return fetch(SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/rpc/public_stats', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
+      body: '{}'
+    }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    });
+  }
+
+  window.PEAnalytics = { track: track, stats: stats, ready: !!(SUPABASE_URL && SUPABASE_KEY) };
 })();
