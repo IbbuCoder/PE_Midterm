@@ -2775,6 +2775,7 @@
       var topDay = Math.max.apply(null, days.map(function (x) { return x.visitors; }).concat(1));
       var since = d.since ? new Date(d.since + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : '';
       root.innerHTML =
+        (A.isOwner && A.isOwner() ? '<p class="note stat-owner">This device is marked as yours, so nothing you do on it is counted.</p>' : '') +
         '<p class="stat-since">' + (since
           ? 'Counting started <b>' + esc(since) + '</b>. Visits before that day weren\'t recorded, so they aren\'t in these numbers.'
           : 'Counting has just started. Numbers show up after the first visit.') + '</p>' +
