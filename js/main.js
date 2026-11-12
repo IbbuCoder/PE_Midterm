@@ -2763,22 +2763,22 @@
       var topDay = Math.max.apply(null, days.map(function (x) { return x.visitors; }).concat(1));
       root.innerHTML =
         '<div class="stat-tiles">' +
-          tile(num(d.visitors_today), 'Studying today') +
-          tile(num(d.visitors_week), 'This week') +
-          tile(num(d.visitors_total), 'All time') +
+          tile(num(d.visitors_total), 'People, all time') +
+          tile(num(d.sessions_total), 'Study sessions') +
+          tile(num(d.views_total), 'Pages opened') +
           tile(num(d.tests_total), 'Tests finished') +
           tile(d.avg_score == null ? '–' : d.avg_score + '%', 'Average test score') +
-          tile(num(d.views_week), 'Pages opened this week') +
+          tile(num(d.visitors_today), 'Studying today') +
         '</div>' +
         '<h2 class="stat-head">People per day</h2>' +
-        '<div class="stat-days" role="img" aria-label="People per day over the last 14 days">' +
+        '<div class="stat-days" role="img" aria-label="People per day since the site started counting">' +
           days.map(function (x) {
             var h = Math.round(x.visitors / topDay * 100);
             var label = new Date(x.day + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
             return '<span title="' + esc(label) + ': ' + x.visitors + '"><i style="height:' + Math.max(h, 2) + '%"></i></span>';
           }).join('') +
-        '</div><p class="note stat-axis"><span>2 weeks ago</span><span>Today</span></p>' +
-        '<h2 class="stat-head">Most used pages <small>last 30 days</small></h2>' +
+        '</div><p class="note stat-axis"><span>' + (d.since ? esc(new Date(d.since + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })) : '') + '</span><span>Today</span></p>' +
+        '<h2 class="stat-head">Most used pages <small>all time</small></h2>' +
         (pages.length ? '<ul class="stat-pages">' + pages.map(function (p) {
           return '<li><span>' + esc(names[p.page] || p.page) + '</span><b>' + num(p.views) + '</b>' +
             '<span class="pct"><i style="width:' + Math.round(p.views / topViews * 100) + '%"></i></span></li>';
