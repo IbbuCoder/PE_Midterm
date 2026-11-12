@@ -2779,6 +2779,53 @@
     document.title = nf.dataset.title + ' | PE Midterm';
   }
 
+  // One-time summary of what this device saved before tracking started, so the
+  // Stats page can include history from before Supabase. Never sends the name
+  // setting or any typed text: only dates, counts and scores.
+  var HISTORY_VERSION = 1;
+  function sendHistory() {
+    if (!window.PEAnalytics || saved.historySent === HISTORY_VERSION) return;
+    var dayIso = function (n) { return new Date(n * 86400000).toISOString().slice(0, 10); };
+    var review = saved.review || {};
+    var keys = Object.keys(review);
+    var days = {};
+    keys.forEach(function (k) {
+      var r = review[k] || {};
+      if (typeof r.first === 'number') days[r.first] = 1;
+      if (typeof r.last === 'number') days[r.last] = 1;
+    });
+    clipList().forEach(function (c) { if (c.at) days[dayNumber(new Date(c.at))] = 1; });
+    var dayList = Object.keys(days).map(Number).sort(function (x, y) { return x - y; });
+    var pctOf = function (r) { return r && r.total ? Math.round(r.score / r.total * 100) : null; };
+    var tests = {};
+    Object.keys(saved.test || {}).slice(0, 12).forEach(function (s) { tests[String(s).slice(0, 12)] = pctOf(saved.test[s]); });
+    var units = {};
+    Object.keys(saved.byUnit || {}).slice(0, 8).forEach(function (u) { units[u] = pctOf(saved.byUnit[u]); });
+    var drill = saved.drill || {};
+    var snap = {
+      v: HISTORY_VERSION,
+      first_day: dayList.length ? dayIso(dayList[0]) : null,
+      last_day: dayList.length ? dayIso(dayList[dayList.length - 1]) : null,
+      active_days: dayList.length,
+      q_practiced: keys.filter(function (k) { return k.indexOf('q:') === 0; }).length,
+      c_practiced: keys.filter(function (k) { return k.indexOf('c:') === 0; }).length,
+      known: Object.keys(saved.known || {}).length,
+      missed: (saved.missed || []).length,
+      streak: (saved.streak || {}).count || 0,
+      tests: tests,
+      units: units,
+      drills: drill.total || 0,
+      drills_right: drill.right || 0,
+      match_best_ms: saved.matchBest || null,
+      bookmarks: savedQList().length + clipList().length
+    };
+    // A brand-new device has nothing to report.
+    var empty = !snap.active_days && !snap.known && !snap.drills && !Object.keys(tests).length && !snap.bookmarks;
+    if (!empty) PEAnalytics.track('history_snapshot', snap);
+    saved.historySent = HISTORY_VERSION;
+    save();
+  }
+
   function renderStats(key) {
     var root = $('#stats-root');
     var A = window.PEAnalytics;
@@ -2866,6 +2913,53 @@
       var topTeacher = teachers.length ? Math.max.apply(null, teachers.map(function (t) { return t.people; })) : 1;
       var students = d.students || [];
       var studyMins = Math.round((d.study_secs || 0) / 60);
+      // History rebuilt from what devices had saved before tracking started.
+      var hi = d.history || {};
+      // Fill in empty days so the chart follows the calendar.
+      var startedDays = (function (rows) {
+        if (!rows.length) return [];
+        var byDay = {};
+        rows.forEach(function (x) { byDay[x.day] = x.people; });
+        var out = [];
+        var t = new Date(rows[0].day + 'T00:00:00Z').getTime();
+        var end = new Date(rows[rows.length - 1].day + 'T00:00:00Z').getTime();
+        for (; t <= end && out.length < 1000; t += 86400000) {
+          var key = new Date(t).toISOString().slice(0, 10);
+          out.push({ day: key, people: byDay[key] || 0 });
+        }
+        return out;
+      })(d.started_by_day || []);
+      var allTime = function () {
+        if (!hi.people) {
+          return head('All time', 'including before tracking started') +
+            '<p class="note">Nothing yet. Each person\'s device sends what it saved before tracking the next time they open the site.</p>';
+        }
+        var topStart = Math.max.apply(null, startedDays.map(function (x) { return x.people; }).concat(1));
+        var earliest = hi.earliest ? dateLabel(hi.earliest, { month: 'long', day: 'numeric', year: 'numeric' }) : '';
+        return head('All time', 'including before tracking started') +
+          '<p class="note stat-key">Rebuilt from what <b>' + people(hi.people) + '</b> had saved on their own device, sent once the next time they opened the site. ' +
+          'People who haven\'t come back since, or cleared their browser, aren\'t included. Page views, visits and time spent before tracking were never saved, so they can\'t be recovered.</p>' +
+          '<div class="stat-tiles">' +
+            tile(esc(earliest ? dateLabel(hi.earliest, { month: 'short', day: 'numeric' }) : '–'), 'Earliest use found', earliest ? esc(earliest) : '') +
+            tile(num(hi.before_tracking), 'Used it before tracking', 'unique people') +
+            tile(hi.active_days_avg == null ? '–' : hi.active_days_avg, 'Days studied', 'average per person') +
+            tile(num(hi.q_practiced), 'Questions practiced', 'different questions, all people') +
+            tile(num(hi.c_practiced), 'Flashcards practiced', 'different cards, all people') +
+            tile(num(hi.known), 'Flashcards "got it"', 'all people') +
+            tile(num(hi.drills), 'Formula drills', hi.drills_pct == null ? '' : hi.drills_pct + '% right') +
+            tile(pct(hi.full_test_avg), 'Latest full test score', 'average of ' + people(hi.full_test_people)) +
+            tile(pct(hi.mock_avg), 'Latest mock quiz score', 'average') +
+            tile(num(hi.streak_best), 'Longest streak now', 'days in a row') +
+            tile(num(hi.bookmarks), 'Bookmarks saved', 'all people') +
+          '</div>' +
+          head('When people started', 'all time: device history or first tracked visit') +
+          '<div class="stat-days" role="img" aria-label="People by the day they started using the site">' +
+            startedDays.map(function (x) {
+              return '<span title="' + esc(dateLabel(x.day, { month: 'short', day: 'numeric' })) + ': ' + people(x.people) + ' started"><i style="height:' + Math.max(Math.round(x.people / topStart * 100), 2) + '%"></i></span>';
+            }).join('') +
+          '</div><p class="note stat-axis"><span>' + (startedDays.length ? esc(dateLabel(startedDays[0].day, { month: 'short', day: 'numeric', year: 'numeric' })) : '') + '</span><span>' +
+            (startedDays.length ? esc(dateLabel(startedDays[startedDays.length - 1].day, { month: 'short', day: 'numeric' })) : '') + '</span></p>';
+      };
       var axis = function () {
         return '<p class="note stat-axis"><span>' + (d.since ? esc(dateLabel(d.since, { month: 'short', day: 'numeric', year: 'numeric' })) : '') + '</span><span>Today</span></p>';
       };
@@ -2893,6 +2987,8 @@
           tile(d.study_people ? dur(studyMins / d.study_people) : '–', 'Average per person') +
           tile(dur(Math.round((d.study_today_secs || 0) / 60)), 'Studied today', 'by ' + people(d.study_today_people)) +
         '</div>' +
+
+        allTime() +
 
         head('People per day', 'unique people each day') +
         '<div class="stat-days" role="img" aria-label="Unique people per day">' +
@@ -2938,7 +3034,7 @@
         head('Students', 'anonymous: numbered in the order they first visited, most study time first') +
         (students.length ? '<div class="stat-table"><table class="tbl stat-students"><thead><tr>' +
           '<th scope="col">Student</th><th scope="col">Teacher</th><th scope="col">Study time</th><th scope="col">Visits</th><th scope="col">Days</th>' +
-          '<th scope="col">Pages</th><th scope="col">Questions</th><th scope="col">Cards</th><th scope="col">Tests</th><th scope="col">First seen</th><th scope="col">Last seen</th>' +
+          '<th scope="col">Pages</th><th scope="col">Questions</th><th scope="col">Cards</th><th scope="col">Tests</th><th scope="col">Using since</th><th scope="col">First tracked</th><th scope="col">Last seen</th>' +
           '</tr></thead><tbody>' +
           students.map(function (s) {
             return '<tr><th scope="row">Student ' + num(s.num) + '</th>' +
@@ -2948,6 +3044,7 @@
               '<td>' + num(s.questions) + (s.q_pct == null ? '' : ' <small class="note">(' + s.q_pct + '% right)</small>') + '</td>' +
               '<td>' + num(s.cards) + '</td>' +
               '<td>' + num(s.tests) + (s.avg_score == null ? '' : ' <small class="note">(avg ' + s.avg_score + '%)</small>') + '</td>' +
+              '<td>' + (s.used_since ? esc(dateLabel(s.used_since, { month: 'short', day: 'numeric' })) : '') + '</td>' +
               '<td>' + esc(stamp(s.first_seen)) + '</td>' +
               '<td>' + esc(stamp(s.last_seen)) + ' <small class="note">(' + esc(ago(s.last_seen)) + ')</small></td></tr>';
           }).join('') +
@@ -3675,6 +3772,8 @@
       if (e.target.closest && e.target.closest('a[href*="forms.gle"]')) logEvent('feedback_click');
     });
     route(true);
+    // Not on the secret Stats link (the owner's device sends nothing anyway).
+    if (!/^#k\//.test(location.hash)) setTimeout(sendHistory, 1500);
 
     // Phone install and offline copy only work on a real web address.
     if (/^http/.test(location.protocol)) {

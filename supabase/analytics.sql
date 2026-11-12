@@ -150,6 +150,21 @@ begin
   act as (
     select name, count(*) as n, count(distinct visitor_id) as people from e group by name
   ),
+  -- What each device had saved before tracking started (sent once: history_snapshot).
+  -- Dates outside a sane range are ignored.
+  hist as (
+    select distinct on (visitor_id) visitor_id, props,
+           case when props->>'first_day' ~ '^\d{4}-\d{2}-\d{2}$'
+                 and (props->>'first_day')::date between date '2024-01-01' and (now() at time zone 'UTC')::date
+                then (props->>'first_day')::date end as first_day
+    from e where name = 'history_snapshot'
+    order by visitor_id, created_at desc
+  ),
+  -- When each person really started: their device history or their first tracked visit, whichever is earlier.
+  started as (
+    select v.visitor_id, least(h.first_day, (v.first_at at time zone 'UTC')::date) as day
+    from visitors v left join hist h using (visitor_id)
+  ),
   sessions as (
     select session_id, count(*) as n,
            extract(epoch from max(created_at) - min(created_at)) as secs
@@ -171,6 +186,7 @@ begin
   ),
   per_person as (
     select v.visitor_id, l.num, t.teacher, v.first_at, v.last_at, v.days, v.sessions,
+           (select day from started sd where sd.visitor_id = v.visitor_id) as used_since,
            coalesce((select sum(secs) from st where st.visitor_id = v.visitor_id), 0) as secs,
            (select count(*) from e where e.visitor_id = v.visitor_id and e.name = 'page_view') as views,
            (select count(*) from e where e.visitor_id = v.visitor_id and e.name = 'question_answered') as questions,
@@ -247,6 +263,27 @@ begin
                            select (props->>'hour')::int as hour, count(*) as n
                            from starts where props ? 'hour'
                            group by 1) x),
+    -- All-time numbers rebuilt from devices (only people who came back after tracking began).
+    'history',          (select json_build_object(
+                           'people',         count(*),
+                           'before_tracking', count(*) filter (where h.first_day < (select (min(created_at) at time zone 'UTC')::date from e)),
+                           'earliest',       to_char(min(h.first_day), 'YYYY-MM-DD'),
+                           'active_days_avg', round(avg(nullif((props->>'active_days')::numeric, 0)), 1),
+                           'q_practiced',    coalesce(sum((props->>'q_practiced')::int), 0),
+                           'c_practiced',    coalesce(sum((props->>'c_practiced')::int), 0),
+                           'known',          coalesce(sum((props->>'known')::int), 0),
+                           'missed',         coalesce(sum((props->>'missed')::int), 0),
+                           'drills',         coalesce(sum((props->>'drills')::int), 0),
+                           'drills_pct',     round(sum((props->>'drills_right')::numeric) / nullif(sum((props->>'drills')::numeric), 0) * 100),
+                           'bookmarks',      coalesce(sum((props->>'bookmarks')::int), 0),
+                           'streak_best',    max((props->>'streak')::int),
+                           'full_test_avg',  round(avg((props->'tests'->>'all')::numeric)),
+                           'full_test_people', count(*) filter (where props->'tests'->>'all' is not null),
+                           'mock_avg',       round(avg((props->'tests'->>'mock')::numeric)))
+                         from hist h),
+    'started_by_day',   (select coalesce(json_agg(x order by x.day), '[]'::json) from (
+                           select to_char(day, 'YYYY-MM-DD') as day, count(*) as people
+                           from started where day is not null group by day) x),
     'teachers',         (select coalesce(json_agg(x), '[]'::json) from (
                            select mode() within group (order by t.teacher) as name,
                                   count(*) as people,
@@ -259,6 +296,7 @@ begin
     'no_teacher',       (select count(*) from visitors v where not exists (select 1 from teacher_of t where t.visitor_id = v.visitor_id)),
     'students',         (select coalesce(json_agg(x), '[]'::json) from (
                            select num, teacher,
+                                  to_char(used_since, 'YYYY-MM-DD') as used_since,
                                   to_char(first_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as first_seen,
                                   to_char(last_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as last_seen,
                                   days, sessions, round(secs / 60) as mins, views,
