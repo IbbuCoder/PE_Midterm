@@ -776,6 +776,7 @@
     saved.lastPage = id;
     save();
     document.title = view.dataset.title + ' | PE Midterm';
+    if (window.PEAnalytics) PEAnalytics.track('page_view', { first: !!first });
     closeMenu();
     if (id === 'updates' && saved.seenNotes !== LATEST.version) {
       saved.seenNotes = LATEST.version;
@@ -2741,6 +2742,7 @@
   function finishRun(run) {
     run.pos = run.ids.length - 1;
     run.finished = true;
+    if (window.PEAnalytics) PEAnalytics.track('test_finished', { scope: run.scope, right: run.right, total: run.ids.length, timedOut: run.timedOut || 0 });
     if (run.scope === 'daily') {
       markDaily();
       toast('Daily 10 done. Streak: ' + saved.streak.count);
