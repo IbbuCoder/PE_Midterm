@@ -1,4 +1,5 @@
--- Run ONCE in the site's Supabase project: Dashboard > SQL Editor > New query > paste > Run.
+-- Run in the site's Supabase project: Dashboard > SQL Editor > New query > paste > Run.
+-- Safe to run again any time you want the stats to start over from 0.
 -- 1. Deletes every recorded event, so the stats start again from 0.
 -- 2. Removes the old public_stats() that anyone could call.
 -- 3. Adds private_stats(key), which only answers with the secret key from the hidden link.

@@ -11,6 +11,24 @@
   var off = !SUPABASE_URL || !SUPABASE_KEY ||
     navigator.doNotTrack === '1' || window.globalPrivacyControl === true;
 
+  // The site owner's devices are never counted. Opening the secret Stats link (#k/...)
+  // marks this device as the owner's for good, and from then on nothing is sent from it.
+  var OWNER_FLAG = 'pe-owner-device';
+  var ownerLink = /^#k\/[A-Za-z0-9_-]{32,128}$/;
+  var owner = false;
+  function markOwner() {
+    owner = true;
+    off = true;
+    queue = [];
+    try { localStorage.setItem(OWNER_FLAG, '1'); } catch (e) { /* storage blocked: still off for this visit */ }
+  }
+  try { owner = localStorage.getItem(OWNER_FLAG) === '1'; } catch (e) { /* ignore */ }
+  if (ownerLink.test(location.hash)) markOwner();
+  if (owner) off = true;
+  window.addEventListener('hashchange', function () {
+    if (ownerLink.test(location.hash)) markOwner();
+  });
+
   function randomId() {
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -82,5 +100,5 @@
     });
   }
 
-  window.PEAnalytics = { track: track, stats: stats, ready: !!(SUPABASE_URL && SUPABASE_KEY) };
+  window.PEAnalytics = { track: track, stats: stats, ready: !!(SUPABASE_URL && SUPABASE_KEY), isOwner: function () { return owner; } };
 })();
