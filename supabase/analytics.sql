@@ -47,17 +47,20 @@ create policy "site can insert events" on public.events
 --   from events where name = 'test_finished' group by 1 order by 2 desc;
 
 -- ---------------------------------------------------------------
--- Public lifetime stats for the site's Stats page.
+-- Private stats for the hidden Stats link.
+-- Only works with the secret key from the link. Only its SHA-256 hash is stored here.
 -- Returns totals only: never visitor ids or single rows.
 -- ---------------------------------------------------------------
-create or replace function public.public_stats()
+create or replace function public.private_stats(key text)
 returns json
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select json_build_object(
+  select case when encode(pg_catalog.sha256(convert_to(coalesce(key, ''), 'UTF8')), 'hex')
+              = '32b267651b816095a13a2c0a0b6c0ad6031f94cd08305b8d9a2280b8e97590a3'
+  then json_build_object(
     'since',          (select to_char(min(created_at), 'YYYY-MM-DD') from public.events),
     'visitors_total', (select count(distinct visitor_id) from public.events),
     'sessions_total', (select count(distinct session_id) from public.events),
@@ -82,8 +85,9 @@ as $$
                          left join public.events e
                            on e.created_at >= g.day and e.created_at < g.day + interval '1 day'
                          group by g.day) d)
-  );
+  ) end;
 $$;
 
-revoke all on function public.public_stats() from public;
-grant execute on function public.public_stats() to anon;
+drop function if exists public.public_stats();
+revoke all on function public.private_stats(text) from public;
+grant execute on function public.private_stats(text) to anon;
