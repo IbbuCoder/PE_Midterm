@@ -2761,9 +2761,13 @@
       var topViews = pages.length ? pages[0].views : 1;
       var days = d.daily || [];
       var topDay = Math.max.apply(null, days.map(function (x) { return x.visitors; }).concat(1));
+      var since = d.since ? new Date(d.since + 'T12:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : '';
       root.innerHTML =
+        '<p class="stat-since">' + (since
+          ? 'Counting started <b>' + esc(since) + '</b>. Visits before that day weren\'t recorded, so they aren\'t in these numbers.'
+          : 'Counting has just started. Numbers show up after the first visit.') + '</p>' +
         '<div class="stat-tiles">' +
-          tile(num(d.visitors_total), 'People, all time') +
+          tile(num(d.visitors_total), 'People so far') +
           tile(num(d.sessions_total), 'Study sessions') +
           tile(num(d.views_total), 'Pages opened') +
           tile(num(d.tests_total), 'Tests finished') +
@@ -2778,7 +2782,7 @@
             return '<span title="' + esc(label) + ': ' + x.visitors + '"><i style="height:' + Math.max(h, 2) + '%"></i></span>';
           }).join('') +
         '</div><p class="note stat-axis"><span>' + (d.since ? esc(new Date(d.since + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })) : '') + '</span><span>Today</span></p>' +
-        '<h2 class="stat-head">Most used pages <small>all time</small></h2>' +
+        '<h2 class="stat-head">Most used pages <small>since counting started</small></h2>' +
         (pages.length ? '<ul class="stat-pages">' + pages.map(function (p) {
           return '<li><span>' + esc(names[p.page] || p.page) + '</span><b>' + num(p.views) + '</b>' +
             '<span class="pct"><i style="width:' + Math.round(p.views / topViews * 100) + '%"></i></span></li>';
