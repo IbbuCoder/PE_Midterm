@@ -758,13 +758,13 @@
 
   function route(first) {
     var id = location.hash.slice(1) || 'home';
-    // Stats only open from the secret link #k/<key>. Plain #stats goes home.
+    // Stats only open from the secret link #k/<key>. Plain #stats looks like any missing page.
     var statsKey = null;
     var km = /^k\/([A-Za-z0-9_-]{32,128})$/.exec(id);
     if (km) { statsKey = km[1]; id = 'stats'; }
-    else if (id === 'stats') id = 'home';
+    else if (id === 'stats' || id === '404') id = 'missing';
     var view = document.getElementById('view-' + id);
-    if (!view) { id = 'home'; view = $('#view-home'); }
+    if (!view) { id = '404'; view = $('#view-404'); }
     $$('.view').forEach(function (v) { v.classList.toggle('is-active', v === view); });
     $$('.nav a').forEach(function (a) {
       if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'page');
@@ -778,7 +778,7 @@
       if (a.dataset.tab === tabId) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     });
-    if (!statsKey) { saved.lastPage = id; save(); }
+    if (!statsKey && id !== '404') { saved.lastPage = id; save(); }
     document.title = view.dataset.title + ' | PE Midterm';
     if (window.PEAnalytics && !statsKey) PEAnalytics.track('page_view', { first: !!first });
     closeMenu();
@@ -2746,6 +2746,13 @@
 
   /* ---------- Private stats (secret link only) ---------- */
 
+  // A wrong stats key looks the same as any other missing page.
+  function showNotFound() {
+    var nf = $('#view-404');
+    $$('.view').forEach(function (v) { v.classList.toggle('is-active', v === nf); });
+    document.title = nf.dataset.title + ' | PE Midterm';
+  }
+
   function renderStats(key) {
     var root = $('#stats-root');
     var A = window.PEAnalytics;
@@ -2755,7 +2762,7 @@
     }
     root.innerHTML = '<p class="note">Loading…</p>';
     A.stats(key).then(function (d) {
-      if (!d) { root.innerHTML = '<p class="note">This link isn\'t valid.</p>'; return; }
+      if (!d) { showNotFound(); return; }
       var num = function (n) { return Number(n || 0).toLocaleString(); };
       var tile = function (value, label) {
         return '<div class="stat-tile"><b>' + value + '</b><span>' + label + '</span></div>';
@@ -3431,7 +3438,7 @@
 
     if (!location.hash && settings.startPage !== 'home') {
       var opening = settings.startPage === 'last' ? saved.lastPage : settings.startPage;
-      if (opening) history.replaceState(null, '', '#' + opening);
+      if (opening && opening !== 'stats' && document.getElementById('view-' + opening)) history.replaceState(null, '', '#' + opening);
     }
 
     window.addEventListener('hashchange', function () { route(false); });
